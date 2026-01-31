@@ -7,6 +7,41 @@ pub struct Card {
     back: String,
 }
 
+#[derive(Default, PartialEq, Clone)]
+pub enum CardSide {
+    #[default]
+    Front,
+    Back,
+}
+
+#[derive(Clone, Default, PartialEq)]
+pub struct CardState {
+    card: Card,
+    side: CardSide,
+
+}
+
+impl CardState {
+    pub fn new(card: Card) -> Self {
+        Self {
+            card,
+            side: CardSide::default(),
+        }
+    }
+    pub fn flip_card(&mut self) {
+        self.side = match self.side {
+            CardSide::Front => CardSide::Back,
+            CardSide::Back => CardSide::Front,
+        }
+    }
+    pub fn get_side(&self) -> &CardSide {
+        &self.side
+    }
+    pub fn get_card(&self) -> &Card {
+        &self.card
+    }
+}
+
 impl Card {
     pub fn new(id: usize, front: String, back: String) -> Self {
         Card {

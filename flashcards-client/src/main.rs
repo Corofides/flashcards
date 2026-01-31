@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use flashcards_data::Card;
+use flashcards_data::{Card, CardState, CardSide};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -8,14 +8,14 @@ pub struct Props {
 
 #[derive(Properties, PartialEq)]
 pub struct CardProperties {
-    card: Card,
+    card: CardState,
 }
 
 #[component]
 fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 
-    let title = card.get_front();
-    let back = card.get_back();
+    let title = card.get_card().get_front();
+    let back = card.get_card().get_back();
 
     html! {
         <>
@@ -29,15 +29,15 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 fn App() -> Html {
 
     let cards = use_state(|| vec![
-        Card::new(1, String::from("Ballet Flats"), String::from("\
+        CardState::new(Card::new(1, String::from("Ballet Flats"), String::from("\
             Simple slip-on shoes with very thin soles and no heel\
-        ")),
-        Card::new(2, String::from("Pumps (Court Shoes)"), String::from("\
+        "))),
+        CardState::new(Card::new(2, String::from("Pumps (Court Shoes)"), String::from("\
             The quintessential heeled shoe. They are closed toe and usually have a seamless, low cut front"
-        )),
-        Card::new(3, String::from("Loafers"), String::from("\
+        ))),
+        CardState::new(Card::new(3, String::from("Loafers"), String::from("\
             A more structured, masculine-inspired slip-on shoe."
-        )),
+        ))),
     ]);
 
     let card_index = use_state(|| 0);
