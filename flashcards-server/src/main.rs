@@ -1,10 +1,11 @@
+use flashcards_data::Card;
+
 use axum::{
     routing::get,
     Router,
     response::Json,
 };
 use serde_json::{Value, json};
-use serde::Serialize;
 
 #[tokio::main]
 async fn main() {
@@ -19,24 +20,6 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 
     println!("Hello, world!");
-}
-
-
-#[derive(Default, Serialize)]
-struct Card {
-    id: usize,
-    front: String,
-    back: String,
-}
-
-impl Card {
-    fn new(id: usize, front: String, back: String) -> Self {
-        Card {
-            id,
-            front,
-            back,
-        }
-    }
 }
 
 async fn get_cards() -> Json<Value> {
