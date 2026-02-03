@@ -122,6 +122,7 @@ name = "flashcards-client"
 version = "0.1.0"
 dependencies = [
  "flashcards_data",
+ "implicit-clone",
  "yew",
 ]
 

@@ -1,5 +1,7 @@
 use yew::prelude::*;
 use flashcards_data::{Card, CardState, CardSide};
+use implicit_clone::ImplicitClone;
+use implicit_clone::unsync::{IArray};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -11,16 +13,20 @@ pub struct CardProperties {
     card: CardState,
 }
 
+
 #[component]
 fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 
-    let title = card.get_card().get_front();
-    let back = card.get_card().get_back();
+
+    let (title, content) = match card.get_side() {
+        CardSide::Front => ("Front", card.get_card().get_front()),
+        CardSide::Back => ("Back", card.get_card().get_back()),
+    };
 
     html! {
         <>
             <h1>{title}</h1>
-            <p>{back}</p>
+            <p>{content}</p>
         </>
     }
 }
@@ -41,13 +47,33 @@ fn App() -> Html {
     ]);
 
     let card_index = use_state(|| 0);
+    //let current_card = use_state(|| cards[*card_index].clone());
     let total_cards = cards.len();
+
+    let card = cards[*card_index].clone();
 
     let next_card = {
         let card_index = card_index.clone();
         move |_| {
             let value = (*card_index + 1) % total_cards;
             card_index.set(value);
+        }
+    };
+
+    let flip_card = {
+        let cards = cards.clone();
+        let card_index = card_index.clone();
+        //let current_card = current_card.clone();
+        move |_| {
+
+            let mut new_cards = (*cards).clone();
+
+            if let Some(card) = new_cards.get_mut(*card_index) {
+                card.flip_card();
+            }
+            /*current_card.flip_card();
+            current_card.set(*current_card);*/
+            cards.set(new_cards);
         }
     };
 
@@ -65,12 +91,12 @@ fn App() -> Html {
         }
     };
 
-    let card = cards[*card_index].clone();
 
     html! {
         <div>
             <CardDiv card={card} />
             <button onclick={prev_card}>{ "Prev Card" }</button>
+            <button onclick={flip_card}>{ "Turn Card" }</button>
             <button onclick={next_card}>{ "Next Card" }</button>
         </div>
     }
