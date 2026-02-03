@@ -1,18 +1,27 @@
 use flashcards_data::Card;
 
+use tower_http::cors::{Any, CorsLayer};
+use http::header::HeaderValue;
+use http::Method;
 use axum::{
     routing::get,
     Router,
     response::Json,
+    middleware::{self, Next},
 };
 use serde_json::{Value, json};
 
 #[tokio::main]
 async fn main() {
 
+    let cors = CorsLayer::new()
+        .allow_origin(/*"localhost:8080".parse::<HeaderValue>().unwrap()*/ Any )
+        .allow_methods([Method::GET]);
+
     let app = Router::new()
         .route("/health", get(get_health))
-        .route("/cards", get(get_cards));
+        .route("/cards", get(get_cards))
+        .layer(cors);
 
     //let app = Router::new().route("/health", get(|| async { "Hello, World!" }));
 

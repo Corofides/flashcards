@@ -1,20 +1,20 @@
-use serde::Serialize;
+use serde::{Serialize,Deserialize};
 
-#[derive(Clone, Default, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Card {
     id: usize,
     front: String,
     back: String,
 }
 
-#[derive(Default, PartialEq, Clone)]
+#[derive(Default, PartialEq, Clone, Debug)]
 pub enum CardSide {
     #[default]
     Front,
     Back,
 }
 
-#[derive(Clone, Default, PartialEq)]
+#[derive(Clone, Default, PartialEq, Debug)]
 pub struct CardState {
     card: Card,
     side: CardSide,

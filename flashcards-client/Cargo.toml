@@ -7,3 +7,5 @@ edition = "2024"
 yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 flashcards_data = { path = "../flashcards_data" }
 implicit-clone = "0.6.0"
+gloo-net = "0.6.0"
+wasm-bindgen-futures = "0.4.58"
