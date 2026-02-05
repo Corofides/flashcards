@@ -1,5 +1,10 @@
 use flashcards_data::Card;
 
+use std::{
+    thread,
+    time::Duration,
+};
+
 use tower_http::cors::{Any, CorsLayer};
 use http::header::HeaderValue;
 use http::Method;
@@ -37,6 +42,8 @@ async fn get_cards() -> Json<Value> {
     cards.push(Card::new(0, String::from("Ballet Flats"), String::new()));
     cards.push(Card::new(1, String::from("Pumps"), String::new()));
     cards.push(Card::new(2, String::from("Loafers"), String::new()));
+
+    thread::sleep(Duration::from_secs(5));
 
     Json(json!(
         cards
