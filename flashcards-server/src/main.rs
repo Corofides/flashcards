@@ -1,18 +1,12 @@
 use flashcards_data::Card;
 
-use std::{
-    thread,
-    time::Duration,
-};
-
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::{CorsLayer};
 use http::header::HeaderValue;
 use http::Method;
 use axum::{
     routing::get,
     Router,
     response::Json,
-    middleware::{self, Next},
 };
 use serde_json::{Value, json};
 
@@ -20,7 +14,7 @@ use serde_json::{Value, json};
 async fn main() {
 
     let cors = CorsLayer::new()
-        .allow_origin(/*"localhost:8080".parse::<HeaderValue>().unwrap()*/ Any )
+        .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
         .allow_methods([Method::GET]);
 
     let app = Router::new()
@@ -28,12 +22,9 @@ async fn main() {
         .route("/cards", get(get_cards))
         .layer(cors);
 
-    //let app = Router::new().route("/health", get(|| async { "Hello, World!" }));
-
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 
-    println!("Hello, world!");
 }
 
 async fn get_cards() -> Json<Value> {
@@ -42,8 +33,6 @@ async fn get_cards() -> Json<Value> {
     cards.push(Card::new(0, String::from("Ballet Flats"), String::new()));
     cards.push(Card::new(1, String::from("Pumps"), String::new()));
     cards.push(Card::new(2, String::from("Loafers"), String::new()));
-
-    thread::sleep(Duration::from_secs(5));
 
     Json(json!(
         cards
