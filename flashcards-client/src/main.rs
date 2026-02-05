@@ -16,50 +16,46 @@ pub struct CardProperties {
     card: CardState,
 }
 
-#[derive(PartialEq)]
-pub struct FlashCards {
-    cards: Suspension, //Vec<CardState>
-}
-
 #[hook]
-fn use_flash_cards() -> SuspensionResult<Rc<Vec<CardState>>> {
+fn use_flash_cards() -> (SuspensionResult<Rc<Vec<CardState>>>, UseStateHandle<Option<Rc<Vec<CardState>>>>) {
 
     let result_handle = use_state(|| None);
     let suspension_handle = use_state(|| None);
 
-    if let Some(cards) = (*result_handle).clone() {
-        return Ok(cards);
-    }
+    let result = if let Some(cards) = (*result_handle).clone() {
+        Ok(cards)
+    } else if let Some(suspension) = (*suspension_handle).clone() {
+        Err(suspension)
+    } else {
 
-    if let Some(suspension) = (*suspension_handle).clone() {
-        return Err(suspension);
-    }
+        let (suspension, comp_handle) = Suspension::new();
+        suspension_handle.set(Some(suspension.clone()));
 
-    let (suspension, comp_handle) = Suspension::new();
-    suspension_handle.set(Some(suspension.clone()));
+        let result_handle = result_handle.clone();
 
-    let result_handle = result_handle.clone();
+        wasm_bindgen_futures::spawn_local(async move {
+            let fetched_cards: Vec<Card> = Request::get("http://localhost:3000/cards")
+                .send()
+                .await
+                .unwrap()
+                .json()
+                .await
+                .unwrap();
+                
+            let fetched_cards: Vec<CardState> = fetched_cards.iter()
+                .map(move |card| CardState::new(card.clone()))
+                .collect();
 
-    wasm_bindgen_futures::spawn_local(async move {
-        let fetched_cards: Vec<Card> = Request::get("http://localhost:3000/cards")
-            .send()
-            .await
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
-            
-        let fetched_cards: Vec<CardState> = fetched_cards.iter()
-            .map(move |card| CardState::new(card.clone()))
-            .collect();
+            result_handle.set(Some(Rc::new(fetched_cards)));
+            comp_handle.resume();
 
-        result_handle.set(Some(Rc::new(fetched_cards)));
-        comp_handle.resume();
+        });
 
-    });
+        Err(suspension)
 
-    Err(suspension)
-    
+    };
+
+    (result, result_handle)
 }
 
 
@@ -82,7 +78,9 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 
 #[component]
 fn Content() -> HtmlResult {
-    let cards = use_flash_cards()?;
+    let (result, handle) = use_flash_cards();
+    let cards = result?;
+    
     let card_index = use_state(|| 0);
     let total_cards = cards.len();
 
@@ -94,21 +92,31 @@ fn Content() -> HtmlResult {
         }
     };
 
-    /*let flip_card = {
-        let cards = Rc::clone(&cards); //.clone();
+    let flip_card = {
+        let cards = cards.clone();
+        let handle = handle.clone();
         let card_index = card_index.clone();
         //let current_card = current_card.clone();
-        move || {
+        move |_| {
+
+            let mut cards = (*cards).clone();
+
+            if let Some(card) = cards.get_mut(*card_index) {
+                //let mut card = card.clone();
+                card.flip_card();
+            }
+
+            handle.set(Some(Rc::new(cards)));
 
             //let mut new_cards = (*cards).clone();
 
-            if let Some(card) = cards.get_mut(*card_index) {
+            /* if let Some(card) = cards.get_mut(*card_index) {
                 (*card).flip_card();
-            }
+            } */
 
             // cards.set(new_cards);
         }
-    };*/
+    };
 
     let prev_card = {
         let card_index = card_index.clone();
@@ -130,7 +138,7 @@ fn Content() -> HtmlResult {
         <div>
             <CardDiv card={card.clone()} />
             <button onclick={prev_card}>{ "Prev Card" }</button>
-            // <button onclick={flip_card}>{ "Turn Card" }</button>
+            <button onclick={flip_card}>{ "Turn Card" }</button>
             <button onclick={next_card}>{ "Next Card" }</button>
         </div>
     })
