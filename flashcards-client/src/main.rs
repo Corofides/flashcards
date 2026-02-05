@@ -1,8 +1,10 @@
 use yew::prelude::*;
 use flashcards_data::{CardState, CardSide};
 use std::{rc::Rc};
+use crate::reducers::flashcards::FlashCardAction;
 
 mod card_hooks;
+mod reducers;
 use crate::card_hooks::use_flash_cards;
 
 #[derive(Properties, PartialEq)]
@@ -34,7 +36,7 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 
 #[component]
 fn Content() -> HtmlResult {
-    let (result, handle) = use_flash_cards();
+    let (result, reducer) = use_flash_cards();
     let cards = result?;
     
     let card_index = use_state(|| 0);
@@ -49,21 +51,14 @@ fn Content() -> HtmlResult {
     };
 
     let flip_card = {
-        let cards = cards.clone();
-        let handle = handle.clone();
+
         let card_index = card_index.clone();
-        //let current_card = current_card.clone();
+        let dispatcher = reducer.dispatcher();
+
         move |_| {
-
-            let mut cards = (*cards).clone();
-
-            if let Some(card) = cards.get_mut(*card_index) {
-                card.flip_card();
-            }
-
-            handle.set(Some(Rc::new(cards)));
-
+            dispatcher.dispatch(FlashCardAction::FlipCard(*card_index));
         }
+
     };
 
     let prev_card = {

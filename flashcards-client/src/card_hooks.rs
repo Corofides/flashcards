@@ -1,27 +1,28 @@
-use yew::{use_state, UseStateHandle, hook};
+use yew::{use_reducer, use_state, UseReducerHandle, hook};
 use yew::suspense::{Suspension, SuspensionResult};
 use std::rc::Rc;
 use flashcards_data::{Card, CardState};
 use gloo_net::http::Request;
+use crate::reducers::flashcards::{FlashCardAction, FlashCardsState};
 
 
 #[hook]
-pub fn use_flash_cards() -> (SuspensionResult<Rc<Vec<CardState>>>, UseStateHandle<Option<Rc<Vec<CardState>>>>) {
+pub fn use_flash_cards() -> (SuspensionResult<Rc<Vec<CardState>>>, UseReducerHandle<FlashCardsState>) {
 
-    let result_handle = use_state(|| None);
+    let reducer = use_reducer(|| FlashCardsState::new());
+
     let suspension_handle = use_state(|| None);
 
-    let result = if let Some(cards) = (*result_handle).clone() {
-        Ok(cards)
-    } else if let Some(suspension) = (*suspension_handle).clone() {
-        Err(suspension)
-    } else {
+    if reducer.cards.is_empty() {
+        if let Some(suspension) = (*suspension_handle).clone() {
+            return (Err(suspension), reducer);
+        }
 
         let (suspension, comp_handle) = Suspension::new();
         suspension_handle.set(Some(suspension.clone()));
 
-        let result_handle = result_handle.clone();
-
+        let dispatcher = reducer.dispatcher();
+        
         wasm_bindgen_futures::spawn_local(async move {
             let fetched_cards: Vec<Card> = Request::get("http://localhost:3000/cards")
                 .send()
@@ -35,14 +36,15 @@ pub fn use_flash_cards() -> (SuspensionResult<Rc<Vec<CardState>>>, UseStateHandl
                 .map(move |card| CardState::new(card.clone()))
                 .collect();
 
-            result_handle.set(Some(Rc::new(fetched_cards)));
+            dispatcher.dispatch(FlashCardAction::SetData(fetched_cards));
             comp_handle.resume();
 
         });
 
-        Err(suspension)
+        return (Err(suspension), reducer);
 
-    };
+    }
 
-    (result, result_handle)
+    (Ok(reducer.cards.clone()), reducer)
+
 }
