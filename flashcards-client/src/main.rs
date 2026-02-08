@@ -2,6 +2,9 @@ use yew::prelude::*;
 use flashcards_data::{CardState, CardSide};
 use std::{rc::Rc};
 use crate::reducers::flashcards::FlashCardAction;
+use gloo_console::log;
+use wasm_bindgen::JsValue;
+use web_sys::HtmlInputElement;
 
 mod card_hooks;
 mod reducers;
@@ -31,6 +34,39 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
             <h1>{title}</h1>
             <p>{content}</p>
         </>
+    }
+}
+
+#[component]
+fn AddNewCardForm() -> Html {
+
+    let mut front = String::new();
+    let mut back = String::new();
+
+    let edit = move |input: HtmlInputElement| {
+        let value = input.value();
+        front = String::from(value);
+        log!("{value}");
+    }; 
+
+    let onkeypress = move |e: KeyboardEvent| {
+        log!("{:?}", e.key());
+        //|| {edit(e.target_unchecked_into())};
+        //front = format!("{}{}", front, e.key());
+    };
+
+    let add_card = {
+        move |_| {
+            log!("adding the card");
+        }
+    };
+
+    html! {
+        <form>
+            <input value={front} onkeypress={onkeypress} type="text" />
+            <input type="text" />
+            <button onclick={add_card}>{"Add Card"}</button>
+        </form>
     }
 }
 
@@ -79,10 +115,15 @@ fn Content() -> HtmlResult {
 
     Ok(html! {
         <div>
-            <CardDiv card={card.clone()} />
-            <button onclick={prev_card}>{ "Prev Card" }</button>
-            <button onclick={flip_card}>{ "Turn Card" }</button>
-            <button onclick={next_card}>{ "Next Card" }</button>
+            <div>
+                <CardDiv card={card.clone()} />
+                <button onclick={prev_card}>{ "Prev Card" }</button>
+                <button onclick={flip_card}>{ "Turn Card" }</button>
+                <button onclick={next_card}>{ "Next Card" }</button>
+            </div>
+            <div>
+                <AddNewCardForm />
+            </div>
         </div>
     })
 
