@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::CardState;
+use crate::{Card, CardState};
 use yew::prelude::*;
 
 pub struct FlashCardsState {
@@ -17,6 +17,7 @@ impl FlashCardsState {
 pub enum FlashCardAction {
     SetData(Vec<CardState>),
     FlipCard(usize),
+    AddCard(Card),
 }
 
 impl Reducible for FlashCardsState {
@@ -24,6 +25,15 @@ impl Reducible for FlashCardsState {
 
     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
         match action {
+            FlashCardAction::AddCard(card) => {
+                let mut new_cards: Vec<CardState> = (*self.cards).clone();
+
+                let new_card_state = CardState::new(card);
+
+                FlashCardsState {
+                    cards: Rc::new(new_cards),
+                }.into()
+            }
             FlashCardAction::SetData(cards) => {
                 FlashCardsState {
                     cards: Rc::new(cards),

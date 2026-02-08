@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use flashcards_data::{CardState, CardSide};
+use flashcards_data::{Card, CardState, CardSide};
 use std::{rc::Rc};
 use crate::reducers::flashcards::FlashCardAction;
 use gloo_console::log;
@@ -45,7 +45,7 @@ fn AddNewCardForm() -> Html {
 
     let edit = move |input: HtmlInputElement| {
         let value = input.value();
-        front = String::from(value);
+        //front = String::from(value);
         log!("{value}");
     }; 
 
