@@ -3,8 +3,19 @@ use yew::suspense::{Suspension, SuspensionResult};
 use std::rc::Rc;
 use flashcards_data::{Card, CardState};
 use gloo_net::http::Request;
-use crate::reducers::flashcards::{FlashCardAction, FlashCardsState};
+use crate::reducers::{
+    flashcards::{FlashCardAction, FlashCardsState},
+    newcard::{NewCardState},
+};
 
+#[hook]
+pub fn use_new_card() -> ((Rc<String>, Rc<String>), UseReducerHandle<NewCardState>) {
+
+    let reducer = use_reducer(|| NewCardState::new());
+
+    ((reducer.front.clone(), reducer.back.clone()), reducer)
+
+}
 
 #[hook]
 pub fn use_flash_cards() -> (SuspensionResult<Rc<Vec<CardState>>>, UseReducerHandle<FlashCardsState>) {
