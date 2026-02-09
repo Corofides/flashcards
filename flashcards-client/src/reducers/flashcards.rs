@@ -30,6 +30,8 @@ impl Reducible for FlashCardsState {
 
                 let new_card_state = CardState::new(card);
 
+                new_cards.push(new_card_state);
+
                 FlashCardsState {
                     cards: Rc::new(new_cards),
                 }.into()

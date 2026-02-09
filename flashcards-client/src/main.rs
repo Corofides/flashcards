@@ -1,10 +1,7 @@
 use yew::prelude::*;
 use flashcards_data::{Card, CardState, CardSide};
-use std::{rc::Rc};
 use crate::reducers::flashcards::FlashCardAction;
 use crate::reducers::newcard::NewCardAction;
-use gloo_console::log;
-use wasm_bindgen::JsValue;
 use web_sys::HtmlInputElement;
 
 mod card_hooks;
@@ -43,19 +40,9 @@ fn AddNewCardForm() -> Html {
 
     let (result, reducer) = use_new_card();
     let (_, cards_reducer) = use_flash_cards();
-    let card = result.clone();
     
     let dispatcher = reducer.dispatcher();
     let cards_dispatcher = cards_reducer.dispatcher();
-
-    let edit_back = {
-        let dispatcher = dispatcher.clone();
-        
-        move |input: HtmlInputElement| {
-            let value = input.value().clone();
-            dispatcher.dispatch(NewCardAction::SetBack(value));
-        }
-    };
 
     let on_front_input = {
         let dispatcher = dispatcher.clone();
@@ -84,14 +71,7 @@ fn AddNewCardForm() -> Html {
         let dispatcher = cards_dispatcher.clone();
 
         move |e: SubmitEvent| {
-            let front = card.get_front();
-            let back = card.get_back();
-
-            // log!(JsValue::from(front));
-            // log!(JsValue::from(back));
-
             dispatcher.dispatch(FlashCardAction::AddCard((*card).clone()));
-
             e.prevent_default();
         }
     };
