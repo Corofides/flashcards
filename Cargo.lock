@@ -128,9 +128,12 @@ name = "flashcards-client"
 version = "0.1.0"
 dependencies = [
  "flashcards_data",
+ "gloo-console",
  "gloo-net 0.6.0",
  "implicit-clone",
+ "wasm-bindgen",
  "wasm-bindgen-futures",
+ "web-sys",
  "yew",
 ]
 
