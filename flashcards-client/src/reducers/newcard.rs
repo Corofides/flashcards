@@ -27,7 +27,11 @@ impl Reducible for NewCardState {
         match action {
             NewCardAction::SetFront(new_front) => {
                 
-                let card: Card = (*self.card).clone();
+                let card: Card = Card::new(
+                    0,
+                    new_front,
+                    (*self.card).get_back().to_string(),
+                );
 
                 NewCardState {
                     card: Rc::new(card),
@@ -35,7 +39,11 @@ impl Reducible for NewCardState {
             }
             NewCardAction::SetBack(new_back) => {
 
-                let card: Card = (*self.card).clone();
+                let card: Card = Card::new(
+                    0,
+                    (*self.card).get_front().to_string(),
+                    new_back
+                );
 
                 NewCardState {
                     card: Rc::new(card),

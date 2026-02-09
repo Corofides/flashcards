@@ -2,6 +2,7 @@ use yew::prelude::*;
 use flashcards_data::{Card, CardState, CardSide};
 use std::{rc::Rc};
 use crate::reducers::flashcards::FlashCardAction;
+use crate::reducers::newcard::NewCardAction;
 use gloo_console::log;
 use wasm_bindgen::JsValue;
 use web_sys::HtmlInputElement;
@@ -40,37 +41,66 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 #[component]
 fn AddNewCardForm() -> Html {
 
-    let (result, _reducer) = use_new_card();
+    let (result, reducer) = use_new_card();
+    let (_, cards_reducer) = use_flash_cards();
+    let card = result.clone();
+    
+    let dispatcher = reducer.dispatcher();
+    let cards_dispatcher = cards_reducer.dispatcher();
 
-    let front = result.get_front();
-    let back = result.get_back();
-    log!("Front: {}", front);
-    //let mut front = String::new();
-    //let mut back = String::new();
+    let edit_back = {
+        let dispatcher = dispatcher.clone();
+        
+        move |input: HtmlInputElement| {
+            let value = input.value().clone();
+            dispatcher.dispatch(NewCardAction::SetBack(value));
+        }
+    };
 
-    let edit = move |input: HtmlInputElement| {
-        let value = input.value();
-        //front = String::from(value);
-        log!("{value}");
-    }; 
+    let on_front_input = {
+        let dispatcher = dispatcher.clone();
 
-    let onkeypress = move |e: KeyboardEvent| {
-        log!("{:?}", e.key());
-        //|| {edit(e.target_unchecked_into())};
-        //front = format!("{}{}", front, e.key());
+        Callback::from(move |e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            dispatcher.dispatch(NewCardAction::SetFront(
+                input.value()        
+            ));
+        })
+    };
+
+    let on_back_input = {
+
+        let dispatcher = dispatcher.clone();
+
+        Callback::from(move |e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            dispatcher.dispatch(NewCardAction::SetBack(input.value()));
+        })
     };
 
     let add_card = {
-        move |_| {
-            log!("adding the card");
+
+        let card = result.clone();
+        let dispatcher = cards_dispatcher.clone();
+
+        move |e: SubmitEvent| {
+            let front = card.get_front();
+            let back = card.get_back();
+
+            // log!(JsValue::from(front));
+            // log!(JsValue::from(back));
+
+            dispatcher.dispatch(FlashCardAction::AddCard((*card).clone()));
+
+            e.prevent_default();
         }
     };
 
     html! {
-        <form>
-            <input value={front.to_string()} onkeypress={onkeypress} type="text" />
-            <input value={back.to_string()} type="text" />
-            <button onclick={add_card}>{"Add Card"}</button>
+        <form onsubmit={add_card}>
+            <input value={result.get_front().to_string()} oninput={on_front_input} type="text" />
+            <input value={result.get_back().to_string()} oninput={on_back_input} type="text" />
+            <button >{"Add Card"}</button>
         </form>
     }
 }
