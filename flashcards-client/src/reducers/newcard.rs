@@ -1,16 +1,15 @@
 use std::rc::Rc;
 use yew::Reducible;
+use flashcards_data::Card;
 
 pub struct NewCardState {
-    pub front: Rc<String>,
-    pub back: Rc<String>,
+    pub card: Rc<Card>,
 }
 
 impl NewCardState {
     pub fn new() -> Self {
         Self {
-            front: Rc::new(String::new()),
-            back: Rc::new(String::new()),
+            card: Rc::new(Card::new(0, String::new(), String::new())),
         }
     }
 }
@@ -27,31 +26,24 @@ impl Reducible for NewCardState {
     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
         match action {
             NewCardAction::SetFront(new_front) => {
-                let mut front: String = (*self.front).clone();
-                let back: String = (*self.back).clone();
+                
+                let card: Card = (*self.card).clone();
 
-                front = String::from(new_front);
-
-               NewCardState {
-                    front: Rc::new(front),
-                    back: Rc::new(back),
+                NewCardState {
+                    card: Rc::new(card),
                 }.into()
             }
             NewCardAction::SetBack(new_back) => {
-                let front: String = (*self.front).clone();
-                let mut back: String = (*self.back).clone();
 
-                back = String::from(new_back);
+                let card: Card = (*self.card).clone();
 
                 NewCardState {
-                    front: Rc::new(front),
-                    back: Rc::new(back),
+                    card: Rc::new(card),
                 }.into()
             }
             NewCardAction::ResetCard => {
                 NewCardState {
-                    front: Rc::new(String::new()),
-                    back: Rc::new(String::new()),
+                    card: Rc::new(Card::new(0, String::new(), String::new())),
                 }.into()
             }
         }

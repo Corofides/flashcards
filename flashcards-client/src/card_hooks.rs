@@ -9,11 +9,11 @@ use crate::reducers::{
 };
 
 #[hook]
-pub fn use_new_card() -> ((Rc<String>, Rc<String>), UseReducerHandle<NewCardState>) {
+pub fn use_new_card() -> (Rc<Card>, UseReducerHandle<NewCardState>) {
 
     let reducer = use_reducer(|| NewCardState::new());
 
-    ((reducer.front.clone(), reducer.back.clone()), reducer)
+    (reducer.card.clone(), reducer)
 
 }
 

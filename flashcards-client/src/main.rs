@@ -8,7 +8,7 @@ use web_sys::HtmlInputElement;
 
 mod card_hooks;
 mod reducers;
-use crate::card_hooks::use_flash_cards;
+use crate::card_hooks::{use_flash_cards, use_new_card};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -40,8 +40,13 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 #[component]
 fn AddNewCardForm() -> Html {
 
-    let mut front = String::new();
-    let mut back = String::new();
+    let (result, _reducer) = use_new_card();
+
+    let front = result.get_front();
+    let back = result.get_back();
+    log!("Front: {}", front);
+    //let mut front = String::new();
+    //let mut back = String::new();
 
     let edit = move |input: HtmlInputElement| {
         let value = input.value();
@@ -63,8 +68,8 @@ fn AddNewCardForm() -> Html {
 
     html! {
         <form>
-            <input value={front} onkeypress={onkeypress} type="text" />
-            <input type="text" />
+            <input value={front.to_string()} onkeypress={onkeypress} type="text" />
+            <input value={back.to_string()} type="text" />
             <button onclick={add_card}>{"Add Card"}</button>
         </form>
     }
