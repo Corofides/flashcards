@@ -36,10 +36,15 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 }
 
 #[component]
-fn AddNewCardForm() -> Html {
+fn AddNewCardForm() -> HtmlResult {
 
     let (result, reducer) = use_new_card();
-    let (_, cards_reducer) = use_flash_cards();
+    
+    let (cards_result, cards_reducer) = use_flash_cards();
+    let cards = cards_result?;
+
+    /* let (cards_result, cards_reducer) = use_flash_cards();
+    let cards = cards_result?; */
     
     let dispatcher = reducer.dispatcher();
     let cards_dispatcher = cards_reducer.dispatcher();
@@ -68,21 +73,26 @@ fn AddNewCardForm() -> Html {
     let add_card = {
 
         let card = result.clone();
-        let dispatcher = cards_dispatcher.clone();
+        let cards = cards.clone();
+        let dispatcher = dispatcher.clone();
+        let cards_dispatcher = cards_dispatcher.clone();
 
         move |e: SubmitEvent| {
-            dispatcher.dispatch(FlashCardAction::AddCard((*card).clone()));
+            cards_dispatcher.dispatch(FlashCardAction::AddCard(Card::new(
+                cards.len(), String::from(card.get_front()), String::from(card.get_back())
+            )));
+            dispatcher.dispatch(NewCardAction::ResetCard);
             e.prevent_default();
         }
     };
 
-    html! {
+    Ok(html! {
         <form onsubmit={add_card}>
             <input value={result.get_front().to_string()} oninput={on_front_input} type="text" />
             <input value={result.get_back().to_string()} oninput={on_back_input} type="text" />
             <button >{"Add Card"}</button>
         </form>
-    }
+    })
 }
 
 #[component]
