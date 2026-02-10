@@ -35,19 +35,24 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
     }
 }
 
+#[derive(Properties, PartialEq)]
+pub struct AddCardProps {
+    pub on_add: Callback<Card>,
+}
+
 #[component]
-fn AddNewCardForm() -> HtmlResult {
+fn AddNewCardForm(props: &AddCardProps) -> HtmlResult {
 
     let (result, reducer) = use_new_card();
     
-    let (cards_result, cards_reducer) = use_flash_cards();
-    let cards = cards_result?;
+    //let (cards_result, cards_reducer) = use_flash_cards();
+    //let cards = cards_result?;
 
     /* let (cards_result, cards_reducer) = use_flash_cards();
     let cards = cards_result?; */
     
     let dispatcher = reducer.dispatcher();
-    let cards_dispatcher = cards_reducer.dispatcher();
+    //let cards_dispatcher = cards_reducer.dispatcher();
 
     let on_front_input = {
         let dispatcher = dispatcher.clone();
@@ -72,15 +77,18 @@ fn AddNewCardForm() -> HtmlResult {
 
     let add_card = {
 
+        let on_add = props.on_add.clone();
         let card = result.clone();
-        let cards = cards.clone();
+        //let cards = cards.clone();
         let dispatcher = dispatcher.clone();
-        let cards_dispatcher = cards_dispatcher.clone();
+        //let cards_dispatcher = cards_dispatcher.clone();
 
         move |e: SubmitEvent| {
-            cards_dispatcher.dispatch(FlashCardAction::AddCard(Card::new(
+            let card = (*card).clone();
+            on_add.emit(card);
+            /*cards_dispatcher.dispatch(FlashCardAction::AddCard(Card::new(
                 cards.len(), String::from(card.get_front()), String::from(card.get_back())
-            )));
+            )));*/
             dispatcher.dispatch(NewCardAction::ResetCard);
             e.prevent_default();
         }
@@ -136,6 +144,16 @@ fn Content() -> HtmlResult {
         }
     };
 
+    let add_card = {
+        let dispatcher = reducer.dispatcher();
+        let id = cards.len();
+        move |card: Card| {
+            dispatcher.dispatch(FlashCardAction::AddCard(Card::new(
+                id, String::from(card.get_front()), String::from(card.get_back())
+            )));
+        }
+    };
+
     let card = cards.get(*card_index).unwrap(); //.clone();
 
     Ok(html! {
@@ -147,7 +165,7 @@ fn Content() -> HtmlResult {
                 <button onclick={next_card}>{ "Next Card" }</button>
             </div>
             <div>
-                <AddNewCardForm />
+                <AddNewCardForm on_add={add_card} />
             </div>
         </div>
     })

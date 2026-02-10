@@ -1,6 +1,8 @@
 use std::rc::Rc;
 use crate::{Card, CardState};
 use yew::prelude::*;
+use gloo_console::log;
+use wasm_bindgen::JsValue;
 
 pub struct FlashCardsState {
     pub cards: Rc<Vec<CardState>>,
@@ -29,6 +31,9 @@ impl Reducible for FlashCardsState {
                 let mut new_cards: Vec<CardState> = (*self.cards).clone();
 
                 let new_card_state = CardState::new(card);
+
+                log!(JsValue::from(new_card_state.get_card().get_id()));
+                log!(JsValue::from(new_card_state.get_card().get_front()));
 
                 new_cards.push(new_card_state);
 
