@@ -27,7 +27,7 @@ pub fn AddNewCardForm(props: &AddCardProps) -> HtmlResult {
     // the state that we are using.
     let dispatcher = reducer.dispatcher();
 
-    // This is a bit weird and wante to explain. So we need a Callback of the type
+    // This is a bit weird and want to explain. So we need a Callback of the type
     //
     // move | e: InputEvent |
     //

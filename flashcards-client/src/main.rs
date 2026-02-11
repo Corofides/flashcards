@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use flashcards_data::{Card, CardState, CardSide};
+use flashcards_data::{CreateCardPayload, Card, CardState, CardSide};
 use crate::reducers::flashcards::FlashCardAction;
 
 mod card_hooks;
@@ -7,6 +7,8 @@ mod reducers;
 mod components;
 use crate::card_hooks::{use_flash_cards};
 use components::add_card_form::{AddNewCardForm};
+use gloo_net::http::Request;
+use gloo_console::log;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -135,13 +137,60 @@ fn Content() -> HtmlResult {
         }
     };
 
+    let post_card = {
+        
+        /*wasm_bindgen_futures::spawn_local(async move {
+            let fetched_cards: Vec<Card> = Request::get("http://localhost:3000/cards")
+                .send()
+                .await
+                .unwrap()
+                .json()
+                .await
+                .unwrap();
+                
+            let fetched_cards: Vec<CardState> = fetched_cards.iter()
+                .map(move |card| CardState::new(card.clone()))
+                .collect();
+
+            dispatcher.dispatch(FlashCardAction::SetData(fetched_cards));
+            comp_handle.resume();
+
+        });*/
+
+
+    };
+
     let add_card = {
         let dispatcher = reducer.dispatcher();
         let id = cards.len();
         move |card: Card| {
-            dispatcher.dispatch(FlashCardAction::AddCard(Card::new(
-                id, String::from(card.get_front()), String::from(card.get_back())
-            )));
+
+            let dispatcher = dispatcher.clone();
+            //"http://localhost:3000/cards"
+            wasm_bindgen_futures::spawn_local(async move {
+
+                let card_payload = CreateCardPayload {
+                    front: card.get_front().to_string(),
+                    back: card.get_back().to_string(),
+                };
+
+                let response = Request::post("http://localhost:3000/cards")
+                    .json(&card_payload)
+                    .unwrap()
+                    .send()
+                    .await;
+
+                match response {
+                    Ok(response) if response.ok() => {
+                        let saved_card: Card = response.json().await.unwrap();
+                        dispatcher.dispatch(FlashCardAction::AddCard(saved_card));
+                    },
+                    _ => {
+                        log!("Error: Could not add card.");
+                    }
+                }
+            });
+
         }
     };
 

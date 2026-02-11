@@ -14,6 +14,12 @@ pub enum CardSide {
     Back,
 }
 
+#[derive(Default, PartialEq, Clone, Debug, Serialize, Deserialize)]
+pub struct CreateCardPayload {
+    pub front: String,
+    pub back: String,
+}
+
 #[derive(Clone, Default, PartialEq, Debug)]
 pub struct CardState {
     card: Card,

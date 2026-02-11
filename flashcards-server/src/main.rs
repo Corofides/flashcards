@@ -1,7 +1,7 @@
-use flashcards_data::Card;
+use flashcards_data::{CreateCardPayload, Card};
 
 use tower_http::cors::{CorsLayer};
-use http::header::HeaderValue;
+use http::header::{HeaderName, HeaderValue};
 use http::Method;
 use axum::{
     extract::State,
@@ -12,15 +12,11 @@ use axum::{
     Router,
     response::Json,
 };
-use serde::{Deserialize};
+
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 
-#[derive(Deserialize)]
-struct CreateCardPayload {
-    front: String,
-    back: String,
-}
+
 
 struct AppState {
     cards: Mutex<Vec<Card>>,
@@ -53,7 +49,8 @@ async fn main() {
 
     let cors = CorsLayer::new()
         .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
-        .allow_methods([Method::GET]);
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_headers(tower_http::cors::Any/*["priority"]*/); // I'd rather not do the ANY thing.
 
     let app = Router::new()
         .route("/health", get(get_health))
@@ -67,11 +64,16 @@ async fn main() {
 
 }
 
-async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<CreateCardPayload>) -> String {
+async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<CreateCardPayload>) -> Json<Value> {
 
     let cards = &mut state.cards.lock().unwrap();
-
     let cards_total = cards.len();
+
+    let new_card = Card::new(
+        cards_total,
+        payload.front.clone(),
+        payload.back.clone(),
+    ); 
 
     cards.push(Card::new(
         cards_total,
@@ -79,7 +81,9 @@ async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<Create
         payload.back.clone(),
     ));
 
-    format!("Card Added! {} total cards!", cards_total + 1)
+    Json(json!(
+        new_card
+    ))
 
 }
 
