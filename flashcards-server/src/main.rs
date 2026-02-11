@@ -1,7 +1,7 @@
 use flashcards_data::{CreateCardPayload, Card};
 
 use tower_http::cors::{CorsLayer};
-use http::header::{HeaderName, HeaderValue};
+use http::header::{HeaderValue};
 use http::Method;
 use axum::{
     extract::State,
@@ -16,6 +16,8 @@ use axum::{
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 
+use sqlx::sqlite::SqlitePoolOptions;
+use sqlx::{Row, SqlitePool};
 
 
 struct AppState {
@@ -23,8 +25,23 @@ struct AppState {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), sqlx::Error> {
 
+    //let pool = SqlitePoolOptions::new()
+    //    .max_connections(5)
+    //    .connect("sqlite://flashcard_db.db").await?;
+    //
+    let db = SqlitePool::connect("sqlite://flashcard_db.db").await.unwrap();
+
+    let row = sqlx::query(
+            "SELECT 150 as value"
+        )
+        //.bind(150_i64)
+        .fetch_one(&db).await.unwrap();
+
+    let value = row.get::<i64, &str>("value");
+    println!("{value}");
+    assert!(false, "Crash here");
     let cards = vec![
         Card::new(
             0, 
@@ -61,6 +78,8 @@ async fn main() {
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
+
+    Ok(())
 
 }
 
