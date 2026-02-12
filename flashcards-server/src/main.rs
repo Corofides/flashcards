@@ -42,17 +42,15 @@ async fn main() -> Result<(), sqlx::Error> {
         println!("DB already exists");
     }
 
-    //let pool = SqlitePoolOptions::new()
-    //    .max_connections(5)
-    //    .connect("sqlite://flashcard_db.db").await?;
-    //
-    let db = SqlitePool::connect(DB_URL).await.unwrap();
-
+    let pool = SqlitePoolOptions::new()
+        .max_connections(5)
+        .connect(DB_URL).await?;
+    
     let row = sqlx::query(
             "SELECT 150 as value"
         )
         //.bind(150_i64)
-        .fetch_one(&db).await.unwrap();
+        .fetch_one(&pool).await.unwrap();
 
     let value = row.get::<i64, &str>("value");
     assert!(150_i64 == value, "Could not retrieve data from database!");
