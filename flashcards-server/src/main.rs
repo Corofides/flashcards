@@ -69,13 +69,15 @@ async fn main() -> Result<(), sqlx::Error> {
         Err(error) => panic!("Migration Error: {}", error),
     }
 
-    /* let card_table_exists = sqlx::query_as::<_, TableData>(
+    let card_table = sqlx::query_as::<_, TableData>(
         "
             SELECT name FROM sqlite_master
-            WHERE type = 'table'
+            WHERE type = 'table' AND name = 'flashcards'
             ORDER BY name
         ")
-        .fetch_one(&mut pool).await.unwrap(); */
+        .fetch_one(&pool).await.unwrap();
+
+    assert_eq!(card_table.name, "flashcards");
     
     let row = sqlx::query(
             "SELECT 150 as value"
