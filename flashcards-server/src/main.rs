@@ -16,9 +16,14 @@ use axum::{
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 
-use sqlx::sqlite::SqlitePoolOptions;
-use sqlx::{Row, SqlitePool};
+use sqlx::{
+    {Row, SqlitePool, Sqlite},
+    sqlite::SqlitePoolOptions,
+    migrate::MigrateDatabase,
+};
+//use sqlx::{Row, SqlitePool, Sqlite};
 
+const DB_URL: &str = "sqlite://flashcards.db";
 
 struct AppState {
     cards: Mutex<Vec<Card>>,
@@ -27,11 +32,21 @@ struct AppState {
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
 
+    if !Sqlite::database_exists(DB_URL).await.unwrap_or(false) {
+        println!("Creating DB {}", DB_URL);
+        match Sqlite::create_database(DB_URL).await {
+            Ok(_) => println!("Created DB"),
+            Err(error) => panic!("Error: {}", error),
+        }
+    } else {
+        println!("DB already exists");
+    }
+
     //let pool = SqlitePoolOptions::new()
     //    .max_connections(5)
     //    .connect("sqlite://flashcard_db.db").await?;
     //
-    let db = SqlitePool::connect("sqlite://flashcard_db.db").await.unwrap();
+    let db = SqlitePool::connect(DB_URL).await.unwrap();
 
     let row = sqlx::query(
             "SELECT 150 as value"
@@ -40,8 +55,8 @@ async fn main() -> Result<(), sqlx::Error> {
         .fetch_one(&db).await.unwrap();
 
     let value = row.get::<i64, &str>("value");
-    println!("{value}");
-    assert!(false, "Crash here");
+    assert!(150_i64 == value, "Could not retrieve data from database!");
+
     let cards = vec![
         Card::new(
             0, 
