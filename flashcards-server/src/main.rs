@@ -17,7 +17,7 @@ use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 
 use sqlx::{
-    {Row, SqlitePool, Sqlite},
+    {Row, Sqlite},
     sqlite::SqlitePoolOptions,
     migrate::MigrateDatabase,
 };
@@ -45,6 +45,24 @@ async fn main() -> Result<(), sqlx::Error> {
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(DB_URL).await?;
+
+    let crate_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+
+    println!("Crate Dir {}", crate_dir);
+    let migrations = std::path::Path::new(&crate_dir).join("migrations");
+
+    println!("Migrations Dir: {:?}", migrations);
+
+    let migration_result = sqlx::migrate::Migrator::new(migrations)
+        .await
+        .unwrap()
+        .run(&pool)
+        .await;
+       
+    match migration_result {
+        Ok(_) => println!("Migration success!"),
+        Err(error) => panic!("Migration Error: {}", error),
+    }
     
     let row = sqlx::query(
             "SELECT 150 as value"
