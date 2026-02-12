@@ -17,7 +17,7 @@ use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 
 use sqlx::{
-    {Row, Sqlite},
+    {Row, Sqlite, FromRow},
     sqlite::SqlitePoolOptions,
     migrate::MigrateDatabase,
 };
@@ -27,6 +27,11 @@ const DB_URL: &str = "sqlite://flashcards.db";
 
 struct AppState {
     cards: Mutex<Vec<Card>>,
+}
+
+#[derive(Debug, FromRow)]
+struct TableData {
+    name: String,
 }
 
 #[tokio::main]
@@ -63,6 +68,14 @@ async fn main() -> Result<(), sqlx::Error> {
         Ok(_) => println!("Migration success!"),
         Err(error) => panic!("Migration Error: {}", error),
     }
+
+    /* let card_table_exists = sqlx::query_as::<_, TableData>(
+        "
+            SELECT name FROM sqlite_master
+            WHERE type = 'table'
+            ORDER BY name
+        ")
+        .fetch_one(&mut pool).await.unwrap(); */
     
     let row = sqlx::query(
             "SELECT 150 as value"
