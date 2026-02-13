@@ -194,6 +194,16 @@ fn Content() -> HtmlResult {
         }
     };
 
+    if cards.is_empty() {
+        return Ok(html! {
+            <div>
+                <div>
+                    <AddNewCardForm on_add={add_card} />
+                </div>
+            </div>
+        });
+    }
+
     let card = cards.get(*card_index).unwrap(); //.clone();
 
     Ok(html! {

@@ -99,7 +99,7 @@ async fn main() -> Result<(), sqlx::Error> {
     println!("{cards:?}");
     
     
-    /* let cards = vec![
+    /*let cards = vec![
         Card::new(
             0, 
             String::from("Simple, slip on shoes with very thin soles and no heel"), 
@@ -115,7 +115,7 @@ async fn main() -> Result<(), sqlx::Error> {
             String::from("A more structured, masculine inspired slip-on shoe. They often have a slightly thicker sole than a ballet flat, and a distinct tongue that covers more of the top of the foot"),
             String::from("Loafers"),
         ), 
-    ]; */
+    ];*/
 
     let shared_state = Arc::new(AppState {
         cards: Mutex::new(cards),

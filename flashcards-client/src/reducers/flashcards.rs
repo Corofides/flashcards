@@ -6,12 +6,14 @@ use wasm_bindgen::JsValue;
 
 pub struct FlashCardsState {
     pub cards: Rc<Vec<CardState>>,
+    pub has_pulled: bool,
 }
 
 impl FlashCardsState {
     pub fn new() -> Self {
         Self {
             cards: Rc::new(Vec::new()),
+            has_pulled: false,
         }
     }
 }
@@ -39,11 +41,13 @@ impl Reducible for FlashCardsState {
 
                 FlashCardsState {
                     cards: Rc::new(new_cards),
+                    has_pulled: true
                 }.into()
             }
             FlashCardAction::SetData(cards) => {
                 FlashCardsState {
                     cards: Rc::new(cards),
+                    has_pulled: true,
                 }.into()
             },
             FlashCardAction::FlipCard(index) => {
@@ -55,6 +59,7 @@ impl Reducible for FlashCardsState {
 
                 FlashCardsState {
                     cards: Rc::new(new_cards),
+                    has_pulled: true,
                 }.into()
             }
         }
