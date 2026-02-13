@@ -70,11 +70,20 @@ async fn setup_db() -> Result<Pool<Sqlite>, sqlx::Error> {
     Ok(pool)
 }
 
+async fn get_cards_from_db(pool: &Pool<Sqlite>) -> Vec<Card> {
+    let cards = sqlx::query_as::<_, Card>(
+            "SELECT * FROM flashcards"
+        )
+        .fetch_all(pool).await.unwrap();
+
+    cards
+}
+
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
 
     let pool = setup_db().await.unwrap();
-    
+
     let card_table = sqlx::query_as::<_, TableData>(
         "
             SELECT name FROM sqlite_master
@@ -85,16 +94,12 @@ async fn main() -> Result<(), sqlx::Error> {
 
     assert_eq!(card_table.name, "flashcards");
     
-    let row = sqlx::query(
-            "SELECT 150 as value"
-        )
-        //.bind(150_i64)
-        .fetch_one(&pool).await.unwrap();
+    let cards = get_cards_from_db(&pool).await;
 
-    let value = row.get::<i64, &str>("value");
-    assert!(150_i64 == value, "Could not retrieve data from database!");
-
-    let cards = vec![
+    println!("{cards:?}");
+    
+    
+    /* let cards = vec![
         Card::new(
             0, 
             String::from("Simple, slip on shoes with very thin soles and no heel"), 
@@ -109,8 +114,8 @@ async fn main() -> Result<(), sqlx::Error> {
             2,
             String::from("A more structured, masculine inspired slip-on shoe. They often have a slightly thicker sole than a ballet flat, and a distinct tongue that covers more of the top of the foot"),
             String::from("Loafers"),
-        ),
-    ];
+        ), 
+    ]; */
 
     let shared_state = Arc::new(AppState {
         cards: Mutex::new(cards),
@@ -141,13 +146,13 @@ async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<Create
     let cards_total = cards.len();
 
     let new_card = Card::new(
-        cards_total,
+        cards_total as u32,
         payload.front.clone(),
         payload.back.clone(),
     ); 
 
     cards.push(Card::new(
-        cards_total,
+        cards_total as u32,
         payload.front.clone(),
         payload.back.clone(),
     ));

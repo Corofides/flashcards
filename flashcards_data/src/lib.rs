@@ -1,8 +1,9 @@
+use sqlx::FromRow;
 use serde::{Serialize,Deserialize};
 
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[derive(FromRow, Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Card {
-    id: usize,
+    id: u32,
     front: String,
     back: String,
 }
@@ -49,14 +50,14 @@ impl CardState {
 }
 
 impl Card {
-    pub fn new(id: usize, front: String, back: String) -> Self {
+    pub fn new(id: u32, front: String, back: String) -> Self {
         Card {
             id,
             front,
             back,
         }
     }
-    pub fn get_id(&self) -> usize {
+    pub fn get_id(&self) -> u32 {
         self.id
     }
     pub fn get_front(&self) -> &str {
