@@ -15,6 +15,7 @@ use axum::{
 
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
+use async_std::task;
 
 use sqlx::{
     {Sqlite, Pool},
@@ -26,7 +27,7 @@ use sqlx::{
 const DB_URL: &str = "sqlite://flashcards.db";
 
 struct AppState {
-    cards: Mutex<Vec<Card>>,
+    database: Mutex<Database>,
 }
 
 #[derive(Debug, Default)]
@@ -36,21 +37,36 @@ pub struct Database {
 
 impl Database {
 
-    pub async fn get_cards(&self) -> Vec<Card> {
+    pub fn add_card(&self, card: &Card) {
+        task::block_on(async {
+            if let Some(pool) = self.pool.clone() {
+                let result = sqlx::query("INSERT INTO flashcards (id, front_of_card, back_of_card) VALUES (?, ?, ?)")
+                    .bind(card.get_id())
+                    .bind(card.get_front())
+                    .bind(card.get_back())
+                    .execute(&pool)
+                    .await;
 
-        if let Some(pool) = self.pool.clone() {
+                println!("Result {:?}", result);
+            }
+        });
+    }
 
-            let cards = sqlx::query_as::<_, Card>(
-                    "SELECT * FROM flashcards"
-                )
-                .fetch_all(&pool).await.unwrap();
+    pub fn get_cards(&self) -> Vec<Card> {
+        task::block_on(async {
+            if let Some(pool) = self.pool.clone() {
 
-            return cards;
+                let cards = sqlx::query_as::<_, Card>(
+                        "SELECT id, front_of_card as front, back_of_card as back FROM flashcards"
+                    )
+                    .fetch_all(&pool).await.unwrap();
 
-        }
+                return cards;
 
-        vec![]
-        
+            }
+
+            vec![]
+        })
     }
 
     async fn migrate_db(&mut self) {
@@ -78,72 +94,53 @@ impl Database {
 
     }
 
-    pub async fn new() -> Self {
-        
-        if !Sqlite::database_exists(DB_URL).await.unwrap_or(false) {
-            println!("Creating DB {}", DB_URL);
-            match Sqlite::create_database(DB_URL).await {
-                Ok(_) => println!("Created DB"),
-                Err(error) => panic!("Error: {}", error),
+    pub fn new() -> Self {
+        task::block_on(async {
+            if !Sqlite::database_exists(DB_URL).await.unwrap_or(false) {
+                println!("Creating DB {}", DB_URL);
+                match Sqlite::create_database(DB_URL).await {
+                    Ok(_) => println!("Created DB"),
+                    Err(error) => panic!("Error: {}", error),
+                }
+            } else {
+                println!("DB already exists");
             }
-        } else {
-            println!("DB already exists");
-        }
 
-        let pool = SqlitePoolOptions::new()
-            .max_connections(5)
-            .connect(DB_URL).await;
+            let pool = SqlitePoolOptions::new()
+                .max_connections(5)
+                .connect(DB_URL).await;
 
 
-        if let Ok(pool) = pool {
+            if let Ok(pool) = pool {
 
-            let mut new_db = Self {
-                pool: Some(pool)
-            };
+                let mut new_db = Self {
+                    pool: Some(pool)
+                };
 
-            Self::migrate_db(&mut new_db).await;
+                Self::migrate_db(&mut new_db).await;
 
-            new_db
+                new_db
 
-            
+                
 
-        } else {
-            panic!("could not create db");
-        }
-
+            } else {
+                panic!("could not create db");
+            }
+        })
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
 
-    let database = Database::new().await;
+    let database = Database::new();
         
-    let cards = database.get_cards().await;
+    let cards = database.get_cards();
 
     println!("{cards:?}");
     
-    
-    /*let cards = vec![
-        Card::new(
-            0, 
-            String::from("Simple, slip on shoes with very thin soles and no heel"), 
-            String::from("Ballet Flats")
-        ),
-        Card::new(
-            1,
-            String::from("The quintessential heeled shoe. They are closed toe and usually have a seamless, low cut front. They don't have straps or laces - you just slide your foot in."),
-            String::from("Pumps (or Court Shoes)"),
-        ),
-        Card::new(
-            2,
-            String::from("A more structured, masculine inspired slip-on shoe. They often have a slightly thicker sole than a ballet flat, and a distinct tongue that covers more of the top of the foot"),
-            String::from("Loafers"),
-        ), 
-    ];*/
-
     let shared_state = Arc::new(AppState {
-        cards: Mutex::new(cards),
+        database: Mutex::new(database),
     });
 
     let cors = CorsLayer::new()
@@ -167,7 +164,8 @@ async fn main() -> Result<(), sqlx::Error> {
 
 async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<CreateCardPayload>) -> Json<Value> {
 
-    let cards = &mut state.cards.lock().unwrap();
+    let database = state.database.lock().unwrap();
+    let cards = &mut database.get_cards();
     let cards_total = cards.len();
 
     let new_card = Card::new(
@@ -175,6 +173,8 @@ async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<Create
         payload.front.clone(),
         payload.back.clone(),
     ); 
+
+    database.add_card(&new_card);
 
     cards.push(Card::new(
         cards_total as u32,
@@ -189,10 +189,12 @@ async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<Create
 }
 
 async fn get_cards(State(state): State<Arc<AppState>>) -> Json<Value> {
-    let cards = state.cards.lock().unwrap();
+    //let cards = state.cards.lock().unwrap();
+    let database = state.database.lock().unwrap();
+    let cards = database.get_cards();
 
     Json(json!(
-        *cards
+        cards
     ))
 }
 

@@ -13,3 +13,4 @@ tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread"] }
 tower-http = { version = "0.6.8", features = ["cors"] }
 http = "1.4.0"
 sqlx = { version = "0.8.6", features = [ "runtime-tokio", "sqlite"] }
+async-std = "1.13.2"
