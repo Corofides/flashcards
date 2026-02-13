@@ -17,7 +17,7 @@ use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 
 use sqlx::{
-    {Row, Sqlite, FromRow},
+    {Row, Sqlite, FromRow, Pool},
     sqlite::SqlitePoolOptions,
     migrate::MigrateDatabase,
 };
@@ -34,9 +34,7 @@ struct TableData {
     name: String,
 }
 
-#[tokio::main]
-async fn main() -> Result<(), sqlx::Error> {
-
+async fn setup_db() -> Result<Pool<Sqlite>, sqlx::Error> {
     if !Sqlite::database_exists(DB_URL).await.unwrap_or(false) {
         println!("Creating DB {}", DB_URL);
         match Sqlite::create_database(DB_URL).await {
@@ -69,6 +67,14 @@ async fn main() -> Result<(), sqlx::Error> {
         Err(error) => panic!("Migration Error: {}", error),
     }
 
+    Ok(pool)
+}
+
+#[tokio::main]
+async fn main() -> Result<(), sqlx::Error> {
+
+    let pool = setup_db().await.unwrap();
+    
     let card_table = sqlx::query_as::<_, TableData>(
         "
             SELECT name FROM sqlite_master
