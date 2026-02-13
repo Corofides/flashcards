@@ -17,7 +17,7 @@ use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 
 use sqlx::{
-    {Row, Sqlite, FromRow, Pool},
+    {Sqlite, Pool},
     sqlite::SqlitePoolOptions,
     migrate::MigrateDatabase,
 };
@@ -29,72 +29,97 @@ struct AppState {
     cards: Mutex<Vec<Card>>,
 }
 
-#[derive(Debug, FromRow)]
-struct TableData {
-    name: String,
+#[derive(Debug, Default)]
+pub struct Database {
+    pool: Option<Pool<Sqlite>>,
 }
 
-async fn setup_db() -> Result<Pool<Sqlite>, sqlx::Error> {
-    if !Sqlite::database_exists(DB_URL).await.unwrap_or(false) {
-        println!("Creating DB {}", DB_URL);
-        match Sqlite::create_database(DB_URL).await {
-            Ok(_) => println!("Created DB"),
-            Err(error) => panic!("Error: {}", error),
+impl Database {
+
+    pub async fn get_cards(&self) -> Vec<Card> {
+
+        if let Some(pool) = self.pool.clone() {
+
+            let cards = sqlx::query_as::<_, Card>(
+                    "SELECT * FROM flashcards"
+                )
+                .fetch_all(&pool).await.unwrap();
+
+            return cards;
+
         }
-    } else {
-        println!("DB already exists");
+
+        vec![]
+        
     }
 
-    let pool = SqlitePoolOptions::new()
-        .max_connections(5)
-        .connect(DB_URL).await?;
+    async fn migrate_db(&mut self) {
+        if let Some(pool) = self.pool.clone() {
 
-    let crate_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+            let crate_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
 
-    println!("Crate Dir {}", crate_dir);
-    let migrations = std::path::Path::new(&crate_dir).join("migrations");
+            println!("Crate Dir {}", crate_dir);
+            let migrations = std::path::Path::new(&crate_dir).join("migrations");
 
-    println!("Migrations Dir: {:?}", migrations);
+            println!("Migrations Dir: {:?}", migrations);
 
-    let migration_result = sqlx::migrate::Migrator::new(migrations)
-        .await
-        .unwrap()
-        .run(&pool)
-        .await;
-       
-    match migration_result {
-        Ok(_) => println!("Migration success!"),
-        Err(error) => panic!("Migration Error: {}", error),
+            let migration_result = sqlx::migrate::Migrator::new(migrations)
+                .await
+                .unwrap()
+                .run(&pool)
+                .await;
+               
+            match migration_result {
+                Ok(_) => println!("Migration success!"),
+                Err(error) => panic!("Migration Error: {}", error),
+            }
+
+        }
+
     }
 
-    Ok(pool)
-}
+    pub async fn new() -> Self {
+        
+        if !Sqlite::database_exists(DB_URL).await.unwrap_or(false) {
+            println!("Creating DB {}", DB_URL);
+            match Sqlite::create_database(DB_URL).await {
+                Ok(_) => println!("Created DB"),
+                Err(error) => panic!("Error: {}", error),
+            }
+        } else {
+            println!("DB already exists");
+        }
 
-async fn get_cards_from_db(pool: &Pool<Sqlite>) -> Vec<Card> {
-    let cards = sqlx::query_as::<_, Card>(
-            "SELECT * FROM flashcards"
-        )
-        .fetch_all(pool).await.unwrap();
+        let pool = SqlitePoolOptions::new()
+            .max_connections(5)
+            .connect(DB_URL).await;
 
-    cards
+
+        if let Ok(pool) = pool {
+
+            let mut new_db = Self {
+                pool: Some(pool)
+            };
+
+            Self::migrate_db(&mut new_db).await;
+
+            new_db
+
+            
+
+        } else {
+            panic!("could not create db");
+        }
+
+    }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
 
-    let pool = setup_db().await.unwrap();
-
-    let card_table = sqlx::query_as::<_, TableData>(
-        "
-            SELECT name FROM sqlite_master
-            WHERE type = 'table' AND name = 'flashcards'
-            ORDER BY name
-        ")
-        .fetch_one(&pool).await.unwrap();
-
-    assert_eq!(card_table.name, "flashcards");
-    
-    let cards = get_cards_from_db(&pool).await;
+    let database = Database::new().await;
+        
+    let cards = database.get_cards().await;
 
     println!("{cards:?}");
     
