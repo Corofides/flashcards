@@ -21,6 +21,11 @@ pub struct CreateCardPayload {
     pub back: String,
 }
 
+#[derive(Default, PartialEq, Clone, Debug, Serialize, Deserialize)]
+ pub struct DeleteCardPayload {
+    pub id: u32,
+}
+
 #[derive(Clone, Default, PartialEq, Debug)]
 pub struct CardState {
     card: Card,

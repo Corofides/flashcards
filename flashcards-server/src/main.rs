@@ -1,4 +1,4 @@
-use flashcards_data::{CreateCardPayload, Card};
+use flashcards_data::{DeleteCardPayload, CreateCardPayload, Card};
 
 use tower_http::cors::{CorsLayer};
 use http::header::{HeaderValue};
@@ -8,6 +8,7 @@ use axum::{
     routing::{
         get,
         post,
+        delete,
     },
     Router,
     response::Json,
@@ -37,7 +38,7 @@ pub struct Database {
 
 impl Database {
 
-    pub fn delete_card(&self, card_id: u32) {
+    pub fn remove_card(&self, card_id: u32) {
         task::block_on(async {
             if let Some(pool) = self.pool.clone() {
                 let result = sqlx::query("DELETE FROM flashcards WHERE id = ?")
@@ -173,13 +174,14 @@ async fn main() -> Result<(), sqlx::Error> {
 
     let cors = CorsLayer::new()
         .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
-        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_methods([Method::DELETE, Method::GET, Method::POST, Method::OPTIONS])
         .allow_headers(tower_http::cors::Any/*["priority"]*/); // I'd rather not do the ANY thing.
 
     let app = Router::new()
         .route("/health", get(get_health))
         .route("/cards", get(get_cards))
         .route("/cards", post(add_card))
+        .route("/cards", delete(remove_card))
         .with_state(shared_state)
         .layer(cors);
 
@@ -187,6 +189,18 @@ async fn main() -> Result<(), sqlx::Error> {
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
+
+}
+
+async fn remove_card(State(state): State<Arc<AppState>>, Json(payload): Json<DeleteCardPayload>) -> Json<Value> {
+
+    let database = state.database.lock().unwrap();
+
+    database.remove_card(payload.id);
+
+    Json(json!(
+        true
+    ))
 
 }
 

@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use flashcards_data::{CreateCardPayload, Card, CardState, CardSide};
+use flashcards_data::{DeleteCardPayload, CreateCardPayload, Card, CardState, CardSide};
 use crate::reducers::flashcards::FlashCardAction;
 
 mod card_hooks;
@@ -36,65 +36,6 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
         </>
     }
 }
-
-/*#[derive(Properties, PartialEq)]
-pub struct AddCardProps {
-    pub on_add: Callback<Card>,
-}
-
-#[component]
-fn AddNewCardForm(props: &AddCardProps) -> HtmlResult {
-
-    let (result, reducer) = use_new_card();
-    
-    let dispatcher = reducer.dispatcher();
-
-    let on_front_input = {
-        let dispatcher = dispatcher.clone();
-
-        Callback::from(move |e: InputEvent| {
-            let input: HtmlInputElement = e.target_unchecked_into();
-            dispatcher.dispatch(NewCardAction::SetFront(
-                input.value()        
-            ));
-        })
-    };
-
-    let on_back_input = {
-
-        let dispatcher = dispatcher.clone();
-
-        Callback::from(move |e: InputEvent| {
-            let input: HtmlInputElement = e.target_unchecked_into();
-            dispatcher.dispatch(NewCardAction::SetBack(input.value()));
-        })
-    };
-
-    let add_card = {
-
-        let on_add = props.on_add.clone();
-        let card = result.clone();
-        let dispatcher = dispatcher.clone();
-
-        move |e: SubmitEvent| {
-            let card = (*card).clone();
-            on_add.emit(card);
-            /*cards_dispatcher.dispatch(FlashCardAction::AddCard(Card::new(
-                cards.len(), String::from(card.get_front()), String::from(card.get_back())
-            )));*/
-            dispatcher.dispatch(NewCardAction::ResetCard);
-            e.prevent_default();
-        }
-    };
-
-    Ok(html! {
-        <form onsubmit={add_card}>
-            <input value={result.get_front().to_string()} oninput={on_front_input} type="text" />
-            <input value={result.get_back().to_string()} oninput={on_back_input} type="text" />
-            <button >{"Add Card"}</button>
-        </form>
-    })
-} */
 
 #[component]
 fn Content() -> HtmlResult {
@@ -134,6 +75,44 @@ fn Content() -> HtmlResult {
             };
 
             card_index.set(value);
+        }
+    };
+
+    let delete_card = {
+        let dispatcher = reducer.dispatcher();
+        let cards = cards.clone();
+        let card_index = card_index.clone();
+
+        move |_| {
+            let dispatcher = dispatcher.clone();
+            let cards = cards.clone();
+            let card_index = card_index.clone();
+
+            wasm_bindgen_futures::spawn_local(async move {
+
+                let card = cards.get(*card_index).unwrap();
+                let card = card.get_card();
+
+                let delete_payload = DeleteCardPayload {
+                    id: card.get_id(),
+                };
+
+                let response = Request::delete("http://localhost:3000/cards")
+                    .json(&delete_payload)
+                    .unwrap()
+                    .send()
+                    .await;
+
+                match response {
+                    Ok(response) if response.ok() => {
+                        log!("Card was successfully removed!");
+                    },
+                    _ => {
+                        log!("Error: Could not remove card");
+                    }
+                }
+
+            });
         }
     };
 
@@ -189,6 +168,7 @@ fn Content() -> HtmlResult {
                 <button onclick={prev_card}>{ "Prev Card" }</button>
                 <button onclick={flip_card}>{ "Turn Card" }</button>
                 <button onclick={next_card}>{ "Next Card" }</button>
+                <button onclick={delete_card}>{ "Delete Card" }</button>
             </div>
             <div>
                 <AddNewCardForm on_add={add_card} />
