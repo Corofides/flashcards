@@ -137,32 +137,8 @@ fn Content() -> HtmlResult {
         }
     };
 
-    let post_card = {
-        
-        /*wasm_bindgen_futures::spawn_local(async move {
-            let fetched_cards: Vec<Card> = Request::get("http://localhost:3000/cards")
-                .send()
-                .await
-                .unwrap()
-                .json()
-                .await
-                .unwrap();
-                
-            let fetched_cards: Vec<CardState> = fetched_cards.iter()
-                .map(move |card| CardState::new(card.clone()))
-                .collect();
-
-            dispatcher.dispatch(FlashCardAction::SetData(fetched_cards));
-            comp_handle.resume();
-
-        });*/
-
-
-    };
-
     let add_card = {
         let dispatcher = reducer.dispatcher();
-        let id = cards.len();
         move |card: Card| {
 
             let dispatcher = dispatcher.clone();
