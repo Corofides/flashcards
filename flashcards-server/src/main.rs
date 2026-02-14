@@ -50,6 +50,21 @@ impl Database {
         });
     }
 
+    pub fn update_card(&self, card: &Card) {
+        task::block_on(async {
+            if let Some(pool) = self.pool.clone() {
+                let result = sqlx::query("UPDATE flashcards SET front_of_card = ?, back_of_card = ? WHERE id = ?")
+                    .bind(card.get_front())
+                    .bind(card.get_back())
+                    .bind(card.get_id())
+                    .execute(&pool)
+                    .await;
+
+                println!("Result {:?}", result);
+            }
+        });
+    }
+
     pub fn add_card(&self, card: &Card) {
         task::block_on(async {
             if let Some(pool) = self.pool.clone() {
