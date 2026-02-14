@@ -37,6 +37,19 @@ pub struct Database {
 
 impl Database {
 
+    pub fn delete_card(&self, card_id: u32) {
+        task::block_on(async {
+            if let Some(pool) = self.pool.clone() {
+                let result = sqlx::query("DELETE FROM flashcards WHERE id = ?")
+                    .bind(card_id)
+                    .execute(&pool)
+                    .await;
+
+                println!("Result {:?}", result);
+            }
+        });
+    }
+
     pub fn add_card(&self, card: &Card) {
         task::block_on(async {
             if let Some(pool) = self.pool.clone() {
