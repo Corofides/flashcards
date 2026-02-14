@@ -106,6 +106,8 @@ fn Content() -> HtmlResult {
                 match response {
                     Ok(response) if response.ok() => {
                         log!("Card was successfully removed!");
+                        dispatcher.dispatch(FlashCardAction::RemoveCard(card.clone()));
+                        card_index.set((*card_index).saturating_sub(1));
                     },
                     _ => {
                         log!("Error: Could not remove card");

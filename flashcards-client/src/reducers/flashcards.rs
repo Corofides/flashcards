@@ -22,6 +22,7 @@ pub enum FlashCardAction {
     SetData(Vec<CardState>),
     FlipCard(usize),
     AddCard(Card),
+    RemoveCard(Card),
 }
 
 impl Reducible for FlashCardsState {
@@ -42,6 +43,23 @@ impl Reducible for FlashCardsState {
                 FlashCardsState {
                     cards: Rc::new(new_cards),
                     has_pulled: true
+                }.into()
+            }
+            FlashCardAction::RemoveCard(card) => {
+                let mut new_cards: Vec<CardState> = (*self.cards).clone();
+
+                let card_position = new_cards.iter()
+                    .position(|current_card| {
+                        current_card.get_card().get_id() == card.get_id()
+                    });
+
+                if let Some(card_position) = card_position {
+                    new_cards.remove(card_position);
+                };
+
+                FlashCardsState {
+                    cards: Rc::new(new_cards),
+                    has_pulled: true,
                 }.into()
             }
             FlashCardAction::SetData(cards) => {
