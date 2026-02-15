@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use flashcards_data::{DeleteCardPayload, CreateCardPayload, Card, CardState, CardSide};
+use flashcards_data::{CreateCardPayload, Card, CardState, CardSide};
 use crate::reducers::flashcards::FlashCardAction;
 
 mod card_hooks;
@@ -93,13 +93,13 @@ fn Content() -> HtmlResult {
                 let card = cards.get(*card_index).unwrap();
                 let card = card.get_card();
 
-                let delete_payload = DeleteCardPayload {
+                /*let delete_payload = DeleteCardPayload {
                     id: card.get_id(),
-                };
+                };*/
 
-                let response = Request::delete("http://localhost:3000/cards")
-                    .json(&delete_payload)
-                    .unwrap()
+                let delete_card_path = format!("http://localhost:3000/cards/{}", card.get_id());
+
+                let response = Request::delete(&delete_card_path)
                     .send()
                     .await;
 

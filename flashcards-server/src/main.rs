@@ -1,10 +1,10 @@
-use flashcards_data::{DeleteCardPayload, CreateCardPayload, Card};
+use flashcards_data::{CreateCardPayload, Card};
 
 use tower_http::cors::{CorsLayer};
 use http::header::{HeaderValue};
 use http::Method;
 use axum::{
-    extract::State,
+    extract::{State, Path},
     routing::{
         get,
         post,
@@ -181,7 +181,7 @@ async fn main() -> Result<(), sqlx::Error> {
         .route("/health", get(get_health))
         .route("/cards", get(get_cards))
         .route("/cards", post(add_card))
-        .route("/cards", delete(remove_card))
+        .route("/cards/{card_id}", delete(remove_card))
         .with_state(shared_state)
         .layer(cors);
 
@@ -192,11 +192,13 @@ async fn main() -> Result<(), sqlx::Error> {
 
 }
 
-async fn remove_card(State(state): State<Arc<AppState>>, Json(payload): Json<DeleteCardPayload>) -> Json<Value> {
+async fn remove_card(State(state): State<Arc<AppState>>, Path(card_id): Path<u32>/*, Json(payload): Json<DeleteCardPayload>*/) -> Json<Value> {
 
     let database = state.database.lock().unwrap();
 
-    database.remove_card(payload.id);
+    println!("CardId: {}", card_id);
+
+    database.remove_card(card_id);
 
     Json(json!(
         true
