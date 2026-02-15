@@ -22,6 +22,7 @@ pub enum FlashCardAction {
     SetData(Vec<CardState>),
     FlipCard(usize),
     AddCard(Card),
+    UpdateCard(Card),
     RemoveCard(Card),
 }
 
@@ -30,6 +31,32 @@ impl Reducible for FlashCardsState {
 
     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
         match action {
+            FlashCardAction::UpdateCard(card) => {
+                let mut new_cards: Vec<CardState> = (*self.cards).clone();
+
+                let card_position = new_cards.iter()
+                    .position(|current_card| {
+                        current_card.get_card().get_id() == card.get_id()
+                    });
+
+                if let Some(card_position) = card_position {
+
+                    let new_card_state = CardState::new(card);
+
+                    new_cards[card_position] = new_card_state;
+
+                    // let current_card = new_cards.get_mut(card_position).unwrap();
+
+                    // current_card.get_card().set_front(card.get_front());
+                    // current_card.get_card().set_back(card.get_back());
+                }
+
+                FlashCardsState {
+                    cards: Rc::new(new_cards),
+                    has_pulled: true,
+                }.into()
+
+            },
             FlashCardAction::AddCard(card) => {
                 let mut new_cards: Vec<CardState> = (*self.cards).clone();
 

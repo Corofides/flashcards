@@ -71,4 +71,10 @@ impl Card {
     pub fn get_back(&self) -> &str {
         &self.back
     }
+    pub fn set_front(&mut self, front: &str) {
+        self.front = String::from(front);
+    }
+    pub fn set_back(&mut self, back: &str) {
+        self.back = String::from(back);
+    }
 }

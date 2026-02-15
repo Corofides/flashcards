@@ -118,6 +118,39 @@ fn Content() -> HtmlResult {
         }
     };
 
+    let update_card = {
+        let dispatcher = reducer.dispatcher();
+        move |card: Card| {
+            let dispatcher = dispatcher.clone();
+
+            wasm_bindgen_futures::spawn_local(async move {
+
+                let card_payload = CreateCardPayload {
+                    front: card.get_front().to_string(),
+                    back: card.get_back().to_string(),
+                };
+
+                let update_url = format!("http://localhost:3000/cards/{}", card.get_id());
+
+                let response = Request::put(&update_url)
+                    .json(&card_payload)
+                    .unwrap()
+                    .send()
+                    .await;
+
+                match response {
+                    Ok(response) if response.ok() => {
+                        let updated_card: Card = response.json().await.unwrap();
+                        dispatcher.dispatch(FlashCardAction::UpdateCard(updated_card));
+                    },
+                    _ => {
+                        log!("Error occurred updating the card");
+                    }
+                }
+            });
+        }
+    };
+
     let add_card = {
         let dispatcher = reducer.dispatcher();
         move |card: Card| {
@@ -155,7 +188,7 @@ fn Content() -> HtmlResult {
         return Ok(html! {
             <div>
                 <div>
-                    <AddNewCardForm on_add={add_card} />
+                    <AddNewCardForm on_update={update_card} on_add={add_card} />
                 </div>
             </div>
         });
@@ -173,7 +206,7 @@ fn Content() -> HtmlResult {
                 <button onclick={delete_card}>{ "Delete Card" }</button>
             </div>
             <div>
-                <AddNewCardForm on_add={add_card} />
+                <AddNewCardForm on_update={update_card} on_add={add_card} />
             </div>
         </div>
     })

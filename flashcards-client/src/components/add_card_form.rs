@@ -11,6 +11,7 @@ use crate::card_hooks::{use_new_card};
 #[derive(Properties, PartialEq)]
 pub struct AddCardProps {
     pub on_add: Callback<Card>,
+    pub on_update: Callback<Card>,
 }
 
 // Component Function
@@ -67,6 +68,21 @@ pub fn AddNewCardForm(props: &AddCardProps) -> HtmlResult {
         })
     };
 
+    let update_card = {
+        let on_update = props.on_update.clone();
+        let card = result.clone();
+        let dispatcher = dispatcher.clone();
+
+        move |e: SubmitEvent| {
+            let card = (*card).clone();
+
+            on_update.emit(card);
+            dispatcher.dispatch(NewCardAction::ResetCard);
+
+            e.prevent_default();
+        }
+    };
+
     let add_card = {
 
         let on_add = props.on_add.clone();
@@ -93,7 +109,8 @@ pub fn AddNewCardForm(props: &AddCardProps) -> HtmlResult {
         <form onsubmit={add_card}>
             <input value={result.get_front().to_string()} oninput={on_front_input} type="text" />
             <input value={result.get_back().to_string()} oninput={on_back_input} type="text" />
-            <button >{"Add Card"}</button>
+            <button>{"Add Card"}</button>
+            <button>{"Update Card"}</button>
         </form>
     })
 }
