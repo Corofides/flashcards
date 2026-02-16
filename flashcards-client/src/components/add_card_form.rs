@@ -3,6 +3,7 @@ use flashcards_data::{Card};
 use crate::reducers::newcard::NewCardAction;
 use web_sys::HtmlInputElement;
 use crate::card_hooks::{use_new_card};
+use gloo_console::log;
 
 // Properties Struct.
 //
@@ -105,12 +106,35 @@ pub fn AddNewCardForm(props: &AddCardProps) -> HtmlResult {
         }
     };
 
+    let on_submit = {
+
+        let update_card = update_card.clone();
+        let add_card = add_card.clone();
+
+        move |e: SubmitEvent| {
+
+            let value = e.submitter(); //.value();
+            
+            if let Some(value) = value {
+                if let Some(attribute) = value.get_attribute("value") {
+                    if attribute == "add_card" {
+                        add_card(e);
+                    } else if attribute == "update_card" {
+                        update_card(e);
+                    }
+                }
+            }
+
+        }
+
+    };
+
     Ok(html! {
-        <form onsubmit={add_card}>
+        <form onsubmit={on_submit}>
             <input value={result.get_front().to_string()} oninput={on_front_input} type="text" />
             <input value={result.get_back().to_string()} oninput={on_back_input} type="text" />
-            <button>{"Add Card"}</button>
-            <button>{"Update Card"}</button>
+            <button value="add_card">{"Add Card"}</button>
+            <button value="update_card">{"Update Card"}</button>
         </form>
     })
 }

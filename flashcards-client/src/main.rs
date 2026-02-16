@@ -120,17 +120,25 @@ fn Content() -> HtmlResult {
 
     let update_card = {
         let dispatcher = reducer.dispatcher();
+        let cards = cards.clone();
+        let card_index = card_index.clone();
+
         move |card: Card| {
             let dispatcher = dispatcher.clone();
+            let cards = cards.clone();
+            let card_index = card_index.clone();
 
             wasm_bindgen_futures::spawn_local(async move {
+
+                let current_card = cards.get(*card_index).unwrap();
+                let current_card = current_card.get_card();
 
                 let card_payload = CreateCardPayload {
                     front: card.get_front().to_string(),
                     back: card.get_back().to_string(),
                 };
 
-                let update_url = format!("http://localhost:3000/cards/{}", card.get_id());
+                let update_url = format!("http://localhost:3000/cards/{}", current_card.get_id());
 
                 let response = Request::put(&update_url)
                     .json(&card_payload)
