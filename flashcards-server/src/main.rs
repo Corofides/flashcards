@@ -17,14 +17,9 @@ use axum::{
 
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
-use async_std::task;
 
-use sqlx::{
-    {Sqlite, Pool},
-    sqlite::SqlitePoolOptions,
-    migrate::MigrateDatabase,
-};
-//use sqlx::{Row, SqlitePool, Sqlite};
+mod database;
+use crate::database::Database;
 
 const DB_URL: &str = "sqlite://flashcards.db";
 
@@ -32,133 +27,7 @@ struct AppState {
     database: Mutex<Database>,
 }
 
-#[derive(Debug, Default)]
-pub struct Database {
-    pool: Option<Pool<Sqlite>>,
-}
 
-impl Database {
-
-    pub fn remove_card(&self, card_id: u32) {
-        task::block_on(async {
-            if let Some(pool) = self.pool.clone() {
-                let result = sqlx::query("DELETE FROM flashcards WHERE id = ?")
-                    .bind(card_id)
-                    .execute(&pool)
-                    .await;
-
-                println!("Result {:?}", result);
-            }
-        });
-    }
-
-    pub fn update_card(&self, card: &Card) {
-        task::block_on(async {
-            if let Some(pool) = self.pool.clone() {
-                let result = sqlx::query("UPDATE flashcards SET front_of_card = ?, back_of_card = ? WHERE id = ?")
-                    .bind(card.get_front())
-                    .bind(card.get_back())
-                    .bind(card.get_id())
-                    .execute(&pool)
-                    .await;
-
-                println!("Result {:?}", result);
-            }
-        });
-    }
-
-    pub fn add_card(&self, card: &Card) {
-        task::block_on(async {
-            if let Some(pool) = self.pool.clone() {
-                let result = sqlx::query("INSERT INTO flashcards (id, front_of_card, back_of_card) VALUES (?, ?, ?)")
-                    .bind(card.get_id())
-                    .bind(card.get_front())
-                    .bind(card.get_back())
-                    .execute(&pool)
-                    .await;
-
-                println!("Result {:?}", result);
-            }
-        });
-    }
-
-    pub fn get_cards(&self) -> Vec<Card> {
-        task::block_on(async {
-            if let Some(pool) = self.pool.clone() {
-
-                let cards = sqlx::query_as::<_, Card>(
-                        "SELECT id, front_of_card as front, back_of_card as back FROM flashcards"
-                    )
-                    .fetch_all(&pool).await.unwrap();
-
-                return cards;
-
-            }
-
-            vec![]
-        })
-    }
-
-    async fn migrate_db(&mut self) {
-        if let Some(pool) = self.pool.clone() {
-
-            let crate_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
-
-            println!("Crate Dir {}", crate_dir);
-            let migrations = std::path::Path::new(&crate_dir).join("migrations");
-
-            println!("Migrations Dir: {:?}", migrations);
-
-            let migration_result = sqlx::migrate::Migrator::new(migrations)
-                .await
-                .unwrap()
-                .run(&pool)
-                .await;
-               
-            match migration_result {
-                Ok(_) => println!("Migration success!"),
-                Err(error) => panic!("Migration Error: {}", error),
-            }
-
-        }
-
-    }
-
-    pub fn new() -> Self {
-        task::block_on(async {
-            if !Sqlite::database_exists(DB_URL).await.unwrap_or(false) {
-                println!("Creating DB {}", DB_URL);
-                match Sqlite::create_database(DB_URL).await {
-                    Ok(_) => println!("Created DB"),
-                    Err(error) => panic!("Error: {}", error),
-                }
-            } else {
-                println!("DB already exists");
-            }
-
-            let pool = SqlitePoolOptions::new()
-                .max_connections(5)
-                .connect(DB_URL).await;
-
-
-            if let Ok(pool) = pool {
-
-                let mut new_db = Self {
-                    pool: Some(pool)
-                };
-
-                Self::migrate_db(&mut new_db).await;
-
-                new_db
-
-                
-
-            } else {
-                panic!("could not create db");
-            }
-        })
-    }
-}
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
@@ -262,7 +131,4 @@ async fn get_cards(State(state): State<Arc<AppState>>) -> Json<Value> {
 
 async fn get_health() -> String {
     String::from("200 OK")
-    /* Json(json!(
-        {"state": String::from("running")}
-    )) */
 }
