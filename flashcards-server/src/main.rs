@@ -9,6 +9,7 @@ use axum::{
         get,
         post,
         delete,
+        put,
     },
     Router,
     response::Json,
@@ -182,6 +183,7 @@ async fn main() -> Result<(), sqlx::Error> {
         .route("/cards", get(get_cards))
         .route("/cards", post(add_card))
         .route("/cards/{card_id}", delete(remove_card))
+        .route("/cards/{card_id}", put(update_card))
         .with_state(shared_state)
         .layer(cors);
 
@@ -204,6 +206,22 @@ async fn remove_card(State(state): State<Arc<AppState>>, Path(card_id): Path<u32
         true
     ))
 
+}
+
+async fn update_card(State(state): State<Arc<AppState>>, Path(card_id): Path<u32>, Json(payload): Json<CreateCardPayload>) -> Json<Value> {
+    let database = state.database.lock().unwrap();
+
+    let updated_card = Card::new(
+        card_id,
+        payload.front.clone(),
+        payload.back.clone(),
+    );
+
+    database.update_card(&updated_card);
+
+    Json(json!(
+        updated_card
+    ))
 }
 
 async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<CreateCardPayload>) -> Json<Value> {
