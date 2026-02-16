@@ -1,5 +1,6 @@
 use flashcards_data::{CreateCardPayload, Card};
 
+use chrono::{DateTime, Local, Utc};
 use tower_http::cors::{CorsLayer};
 use http::header::{HeaderValue};
 use http::Method;
@@ -19,7 +20,7 @@ use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
 
 mod database;
-use crate::database::Database;
+use crate::database::{Database, GetCardFilters};
 
 const DB_URL: &str = "sqlite://flashcards.db";
 
@@ -34,10 +35,6 @@ async fn main() -> Result<(), sqlx::Error> {
 
     let database = Database::new();
         
-    let cards = database.get_cards();
-
-    println!("{cards:?}");
-    
     let shared_state = Arc::new(AppState {
         database: Mutex::new(database),
     });
@@ -50,7 +47,9 @@ async fn main() -> Result<(), sqlx::Error> {
     let app = Router::new()
         .route("/health", get(get_health))
         .route("/cards", get(get_cards))
+        .route("/cards/due", get(get_cards_due))
         .route("/cards", post(add_card))
+        .route("/cards/{card_id}/review", post(review_card))
         .route("/cards/{card_id}", delete(remove_card))
         .route("/cards/{card_id}", put(update_card))
         .with_state(shared_state)
@@ -96,7 +95,7 @@ async fn update_card(State(state): State<Arc<AppState>>, Path(card_id): Path<u32
 async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<CreateCardPayload>) -> Json<Value> {
 
     let database = state.database.lock().unwrap();
-    let cards = &mut database.get_cards();
+    let cards = &mut database.get_cards(GetCardFilters::default());
     let cards_total = cards.len();
 
     let new_card = Card::new(
@@ -119,10 +118,42 @@ async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<Create
 
 }
 
+async fn review_card(
+        State(state): State<Arc<AppState>>, 
+        Path(card_id): Path<u32>,
+        Json(_payload): Json<u8>,
+    ) -> Json<Value> {
+
+    let database = state.database.lock().unwrap();
+    let card = database.get_card(card_id);
+
+    Json(json!(
+        card
+    ))
+}
+
+// Function to serve route /cards/due 
+async fn get_cards_due(State(state): State<Arc<AppState>>) -> Json<Value> {
+    let database = state.database.lock().unwrap();
+
+    let dt = Utc::now();
+
+    let filters = GetCardFilters::default()
+        .add_from(dt.timestamp());
+
+    println!("{}", dt.timestamp());
+
+    let cards = database.get_cards(filters);
+
+    Json(json!(
+        cards
+    ))
+}
+
 async fn get_cards(State(state): State<Arc<AppState>>) -> Json<Value> {
     //let cards = state.cards.lock().unwrap();
     let database = state.database.lock().unwrap();
-    let cards = database.get_cards();
+    let cards = database.get_cards(GetCardFilters::default());
 
     Json(json!(
         cards

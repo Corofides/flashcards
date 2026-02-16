@@ -5,9 +5,24 @@ use sqlx::{
     migrate::MigrateDatabase,
     sqlite::SqlitePoolOptions,
     Sqlite,
+    QueryBuilder,
     Pool,
 };
 use crate::DB_URL;
+
+#[derive(Debug, Default)]
+pub struct GetCardFilters {
+    from: Option<i64>
+}
+
+impl GetCardFilters {
+
+    pub fn add_from(mut self, from: i64) -> Self {
+        self.from = Some(from);
+        self
+    }
+
+}
 
 #[derive(Debug, Default)]
 pub struct Database {
@@ -59,15 +74,49 @@ impl Database {
         });
     }
 
-    pub fn get_cards(&self) -> Vec<Card> {
+    pub fn get_card(&self, id: u32) -> Option<Card> {
+        task::block_on(async {
+            if let Some(pool) = self.pool.clone() {
+                let card = sqlx::query_as::<_, Card>(
+                        "SELECT id, front_of_card as front, back_of_card as back FROM flashcards WHERE id = ?"
+                    )
+                    .bind(id)
+                    .fetch_one(&pool).await.unwrap();
+
+                return Some(card);
+
+            }
+
+            None
+
+        })
+
+    }
+
+    pub fn get_cards(&self, filters: GetCardFilters) -> Vec<Card> {
         task::block_on(async {
             if let Some(pool) = self.pool.clone() {
 
-                let cards = sqlx::query_as::<_, Card>(
-                        "SELECT id, front_of_card as front, back_of_card as back FROM flashcards"
-                    )
-                    .fetch_all(&pool).await.unwrap();
+                let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new("
+                    SELECT id, front_of_card as front, back_of_card as back, next_review
+                    FROM flashcards
+                    WHERE 1=1 
+                ");
 
+                if let Some(from) = filters.from {
+                    query_builder.push(" AND next_review < ");
+                    query_builder.push_bind(format!("{}", from));
+                }
+
+                //println!("{:?}", query_builder);
+
+
+                let query = query_builder.build_query_as::<Card>();
+                let cards = query
+                    .fetch_all(&pool)
+                    .await
+                    .unwrap();
+                
                 return cards;
 
             }

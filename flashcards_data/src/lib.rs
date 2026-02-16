@@ -6,6 +6,7 @@ pub struct Card {
     id: u32,
     front: String,
     back: String,
+    next_review: String,
 }
 
 #[derive(Default, PartialEq, Clone, Debug)]
@@ -60,6 +61,7 @@ impl Card {
             id,
             front,
             back,
+            next_review: String::new(),
         }
     }
     pub fn get_id(&self) -> u32 {
