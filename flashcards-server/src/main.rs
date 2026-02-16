@@ -175,7 +175,7 @@ async fn main() -> Result<(), sqlx::Error> {
 
     let cors = CorsLayer::new()
         .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
-        .allow_methods([Method::DELETE, Method::GET, Method::POST, Method::OPTIONS])
+        .allow_methods([Method::PUT, Method::DELETE, Method::GET, Method::POST, Method::OPTIONS])
         .allow_headers(tower_http::cors::Any/*["priority"]*/); // I'd rather not do the ANY thing.
 
     let app = Router::new()
