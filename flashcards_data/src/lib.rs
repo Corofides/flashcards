@@ -19,6 +19,8 @@ pub struct Card {
     id: u32,
     front: String,
     back: String,
+    ease_factor: f32,
+    interval: f32,
     next_review: String,
 }
 
@@ -75,6 +77,8 @@ impl Card {
             front,
             back,
             next_review: String::new(),
+            ease_factor: 2.5_f32,
+            interval: 0.0,
         }
     }
     pub fn get_id(&self) -> u32 {
@@ -86,10 +90,28 @@ impl Card {
     pub fn get_back(&self) -> &str {
         &self.back
     }
+    pub fn next_review(&self) -> &str {
+        &self.next_review
+    }
+    pub fn ease_factor(&self) -> &f32 {
+        &self.ease_factor
+    }
+    pub fn interval(&self) -> &f32 {
+        &self.interval
+    }
     pub fn set_front(&mut self, front: &str) {
         self.front = String::from(front);
     }
     pub fn set_back(&mut self, back: &str) {
         self.back = String::from(back);
+    }
+    pub fn set_next_review(&mut self, next_review: &str) {
+        self.next_review = String::from(next_review);
+    }
+    pub fn set_ease_factor(&mut self, ease_factor: f32) {
+        self.ease_factor = ease_factor;
+    }
+    pub fn set_interval(&mut self, interval: f32) {
+        self.interval = interval;
     }
 }

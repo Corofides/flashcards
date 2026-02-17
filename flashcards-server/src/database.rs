@@ -77,7 +77,7 @@ impl Database {
         task::block_on(async {
             if let Some(pool) = self.pool.clone() {
                 let card = sqlx::query_as::<_, Card>(
-                        "SELECT id, front_of_card as front, back_of_card as back FROM flashcards WHERE id = ?"
+                        "SELECT id, front_of_card as front, back_of_card as back, ease_factor, interval, next_review FROM flashcards WHERE id = ?"
                     )
                     .bind(id)
                     .fetch_one(&pool).await.unwrap();
@@ -97,7 +97,7 @@ impl Database {
             if let Some(pool) = self.pool.clone() {
 
                 let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new("
-                    SELECT id, front_of_card as front, back_of_card as back, next_review
+                    SELECT id, front_of_card as front, back_of_card as back, ease_factor, interval, next_review
                     FROM flashcards
                     WHERE 1=1 
                 ");

@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use flashcards_data::{CreateCardPayload, Card, CardState, CardSide};
+use flashcards_data::{CardDifficulty, ReviewCardPayload, CreateCardPayload, Card, CardState, CardSide};
 use crate::reducers::flashcards::FlashCardAction;
 
 mod card_hooks;
@@ -192,6 +192,43 @@ fn Content() -> HtmlResult {
         }
     };
 
+    let review_card = {
+        let _dispatcher = reducer.dispatcher();
+        let cards = cards.clone();
+        let card_index = card_index.clone();
+        move |_| {
+
+            let cards = cards.clone();
+            let card_index = card_index.clone();
+
+            wasm_bindgen_futures::spawn_local(async move {
+
+                let card = cards.get(*card_index).unwrap();
+                let review_payload = ReviewCardPayload {
+                    difficulty: CardDifficulty::Medium
+                };
+
+                let url = format!("http://localhost:3000/cards/{}/review", card.get_card().get_id());
+
+                let response = Request::post(&url)
+                    .json(&review_payload)
+                    .unwrap()
+                    .send()
+                    .await;
+
+                match response {
+                    Ok(response) if response.ok() => {
+                        let reviewed_card: Card = response.json().await.unwrap();
+                        log!(format!("Reviewed Card: {:?}", reviewed_card));
+                    },
+                    _ => {},
+                }
+
+            });
+            log!("Reviewing the card!");
+        }
+    };
+
     if cards.is_empty() {
         return Ok(html! {
             <div>
@@ -212,6 +249,11 @@ fn Content() -> HtmlResult {
                 <button onclick={flip_card}>{ "Turn Card" }</button>
                 <button onclick={next_card}>{ "Next Card" }</button>
                 <button onclick={delete_card}>{ "Delete Card" }</button>
+            </div>
+            <div>
+                <button onclick={review_card.clone()}>{ "Easy" }</button>
+                <button onclick={review_card.clone()}>{ "Medium" }</button>
+                <button onclick={review_card.clone()}>{ "Hard" }</button>
             </div>
             <div>
                 <AddNewCardForm on_update={update_card} on_add={add_card} />

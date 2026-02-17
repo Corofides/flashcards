@@ -1,6 +1,6 @@
 use flashcards_data::{CardDifficulty, ReviewCardPayload, CreateCardPayload, Card};
 
-use chrono::{Utc};
+use chrono::{Utc, Days};
 use tower_http::cors::{CorsLayer};
 use http::header::{HeaderValue};
 use http::Method;
@@ -128,18 +128,48 @@ async fn review_card(
     ) -> Json<Value> {
 
     let database = state.database.lock().unwrap();
-    let card = database.get_card(card_id);
+    let card = &mut database.get_card(card_id);
     let difficulty = payload.difficulty.clone();
 
-    match difficulty {
-        CardDifficulty::Easy => {},
-        CardDifficulty::Medium => {},
-        CardDifficulty::Hard => {},
-    }
+    if let Some(card) = card {
+        match difficulty {
+            CardDifficulty::Easy => {
+                let mut ease_factor = card.ease_factor().clone();
+                card.set_interval(card.interval() * card.ease_factor());
+
+                ease_factor = f32::min(5.0, ease_factor + 0.5);
+                card.set_ease_factor(ease_factor);
+            },
+            CardDifficulty::Medium => {
+                let mut ease_factor = card.ease_factor().clone();
+                ease_factor = f32::min(5.0, ease_factor + 0.5);
+                card.set_ease_factor(ease_factor);
+            },
+            CardDifficulty::Hard => {
+                card.set_interval(1.0);
+
+                let mut ease_factor = card.ease_factor().clone();
+                ease_factor = f32::max(1.0, ease_factor - 0.5);
+                card.set_ease_factor(ease_factor);
+            },
+        }
+
+        let mut dt = Utc::now();
+        let days_to_add = Days::new(card.interval().clone() as u64);
+        dt = dt.checked_add_days(days_to_add).unwrap();
+
+        card.set_next_review(&format!("{dt}"));
+
+        return Json(json!(
+            card
+        ));
+
+    };
 
     Json(json!(
-        card
+        None::<Card>
     ))
+
 }
 
 // Function to serve route /cards/due 
