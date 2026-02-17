@@ -9,15 +9,16 @@ use sqlx::{
     Pool,
 };
 use crate::DB_URL;
+use chrono::{DateTime, Utc};
 
 #[derive(Debug, Default)]
 pub struct GetCardFilters {
-    from: Option<i64>
+    from: Option<DateTime<Utc>>
 }
 
 impl GetCardFilters {
 
-    pub fn add_from(mut self, from: i64) -> Self {
+    pub fn add_from(mut self, from: DateTime<Utc>) -> Self {
         self.from = Some(from);
         self
     }

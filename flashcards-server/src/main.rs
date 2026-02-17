@@ -139,7 +139,7 @@ async fn get_cards_due(State(state): State<Arc<AppState>>) -> Json<Value> {
     let dt = Utc::now();
 
     let filters = GetCardFilters::default()
-        .add_from(dt.timestamp());
+        .add_from(dt);
 
     println!("{}", dt.timestamp());
 
