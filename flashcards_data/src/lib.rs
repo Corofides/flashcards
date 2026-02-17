@@ -1,6 +1,19 @@
 use sqlx::FromRow;
 use serde::{Serialize,Deserialize};
 
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub enum CardDifficulty {
+    Easy,
+    #[default]
+    Medium,
+    Hard,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct ReviewCardPayload {
+    pub difficulty: CardDifficulty,
+}
+
 #[derive(FromRow, Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Card {
     id: u32,

@@ -1,6 +1,6 @@
-use flashcards_data::{CreateCardPayload, Card};
+use flashcards_data::{CardDifficulty, ReviewCardPayload, CreateCardPayload, Card};
 
-use chrono::{DateTime, Local, Utc};
+use chrono::{Utc};
 use tower_http::cors::{CorsLayer};
 use http::header::{HeaderValue};
 use http::Method;
@@ -15,6 +15,9 @@ use axum::{
     Router,
     response::Json,
 };
+/* use axum_macros::{
+    debug_handler,
+};*/
 
 use serde_json::{Value, json};
 use std::sync::{Arc, Mutex};
@@ -121,11 +124,18 @@ async fn add_card(State(state): State<Arc<AppState>>, Json(payload): Json<Create
 async fn review_card(
         State(state): State<Arc<AppState>>, 
         Path(card_id): Path<u32>,
-        Json(_payload): Json<u8>,
+        Json(payload): Json<ReviewCardPayload>,
     ) -> Json<Value> {
 
     let database = state.database.lock().unwrap();
     let card = database.get_card(card_id);
+    let difficulty = payload.difficulty.clone();
+
+    match difficulty {
+        CardDifficulty::Easy => {},
+        CardDifficulty::Medium => {},
+        CardDifficulty::Hard => {},
+    }
 
     Json(json!(
         card

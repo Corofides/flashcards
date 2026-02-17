@@ -17,12 +17,10 @@ pub struct GetCardFilters {
 }
 
 impl GetCardFilters {
-
     pub fn add_from(mut self, from: DateTime<Utc>) -> Self {
         self.from = Some(from);
         self
     }
-
 }
 
 #[derive(Debug, Default)]
