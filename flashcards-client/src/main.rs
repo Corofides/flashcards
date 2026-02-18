@@ -196,38 +196,48 @@ fn Content() -> HtmlResult {
         let dispatcher = reducer.dispatcher();
         let cards = cards.clone();
         let card_index = card_index.clone();
-        move |_| {
 
+        move |difficulty: CardDifficulty| {
+
+            let dispatcher = reducer.dispatcher();
             let cards = cards.clone();
             let card_index = card_index.clone();
-            let dispatcher = dispatcher.clone();
 
-            wasm_bindgen_futures::spawn_local(async move {
 
-                let card = cards.get(*card_index).unwrap();
-                let review_payload = ReviewCardPayload {
-                    difficulty: CardDifficulty::Medium
-                };
+            move |_| {
 
-                let url = format!("http://localhost:3000/cards/{}/review", card.get_card().get_id());
+                let cards = cards.clone();
+                let card_index = card_index.clone();
+                let dispatcher = dispatcher.clone();
+                let difficulty = difficulty.clone();
 
-                let response = Request::post(&url)
-                    .json(&review_payload)
-                    .unwrap()
-                    .send()
-                    .await;
+                wasm_bindgen_futures::spawn_local(async move {
 
-                match response {
-                    Ok(response) if response.ok() => {
-                        let reviewed_card: Card = response.json().await.unwrap();
-                        log!(format!("Reviewed Card: {:?}", &reviewed_card));
-                        dispatcher.dispatch(FlashCardAction::UpdateCard(reviewed_card));
-                    },
-                    _ => {},
-                }
+                    let card = cards.get(*card_index).unwrap();
+                    let review_payload = ReviewCardPayload {
+                        difficulty, // : CardDifficulty::Medium
+                    };
 
-            });
-            log!("Reviewing the card!");
+                    let url = format!("http://localhost:3000/cards/{}/review", card.get_card().get_id());
+
+                    let response = Request::post(&url)
+                        .json(&review_payload)
+                        .unwrap()
+                        .send()
+                        .await;
+
+                    match response {
+                        Ok(response) if response.ok() => {
+                            let reviewed_card: Card = response.json().await.unwrap();
+                            log!(format!("Reviewed Card: {:?}", &reviewed_card));
+                            dispatcher.dispatch(FlashCardAction::UpdateCard(reviewed_card));
+                        },
+                        _ => {},
+                    }
+
+                });
+                log!("Reviewing the card!");
+            }
         }
     };
 
@@ -253,9 +263,9 @@ fn Content() -> HtmlResult {
                 <button onclick={delete_card}>{ "Delete Card" }</button>
             </div>
             <div>
-                <button onclick={review_card.clone()}>{ "Easy" }</button>
-                <button onclick={review_card.clone()}>{ "Medium" }</button>
-                <button onclick={review_card.clone()}>{ "Hard" }</button>
+                <button onclick={review_card(CardDifficulty::Easy)}>{ "Easy" }</button>
+                <button onclick={review_card(CardDifficulty::Medium)}>{ "Medium" }</button>
+                <button onclick={review_card(CardDifficulty::Hard)}>{ "Hard" }</button>
             </div>
             <div>
                 <AddNewCardForm on_update={update_card} on_add={add_card} />
