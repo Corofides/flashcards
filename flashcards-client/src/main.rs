@@ -193,13 +193,14 @@ fn Content() -> HtmlResult {
     };
 
     let review_card = {
-        let _dispatcher = reducer.dispatcher();
+        let dispatcher = reducer.dispatcher();
         let cards = cards.clone();
         let card_index = card_index.clone();
         move |_| {
 
             let cards = cards.clone();
             let card_index = card_index.clone();
+            let dispatcher = dispatcher.clone();
 
             wasm_bindgen_futures::spawn_local(async move {
 
@@ -219,7 +220,8 @@ fn Content() -> HtmlResult {
                 match response {
                     Ok(response) if response.ok() => {
                         let reviewed_card: Card = response.json().await.unwrap();
-                        log!(format!("Reviewed Card: {:?}", reviewed_card));
+                        log!(format!("Reviewed Card: {:?}", &reviewed_card));
+                        dispatcher.dispatch(FlashCardAction::UpdateCard(reviewed_card));
                     },
                     _ => {},
                 }

@@ -3,7 +3,6 @@ use flashcards_data::{Card};
 use crate::reducers::newcard::NewCardAction;
 use web_sys::HtmlInputElement;
 use crate::card_hooks::{use_new_card};
-use gloo_console::log;
 
 // Properties Struct.
 //

@@ -160,6 +160,8 @@ async fn review_card(
 
         card.set_next_review(&format!("{dt}"));
 
+        database.update_card(&card);
+
         return Json(json!(
             card
         ));

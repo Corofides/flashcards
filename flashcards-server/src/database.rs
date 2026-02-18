@@ -46,9 +46,20 @@ impl Database {
     pub fn update_card(&self, card: &Card) {
         task::block_on(async {
             if let Some(pool) = self.pool.clone() {
-                let result = sqlx::query("UPDATE flashcards SET front_of_card = ?, back_of_card = ? WHERE id = ?")
+                let result = sqlx::query(
+                        "UPDATE flashcards SET 
+                            front_of_card = ?,
+                            back_of_card = ?,
+                            interval = ?,
+                            ease_factor = ?,
+                            next_review = ?
+                        WHERE id = ?"
+                    )
                     .bind(card.get_front())
                     .bind(card.get_back())
+                    .bind(card.interval())
+                    .bind(card.ease_factor())
+                    .bind(card.next_review())
                     .bind(card.get_id())
                     .execute(&pool)
                     .await;
