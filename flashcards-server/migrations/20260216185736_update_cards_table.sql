@@ -1,6 +1,6 @@
 --- Add migration script here
 ALTER TABLE flashcards 
-  ADD COLUMN ease_factor float DEFAULT 2.5;
+  ADD COLUMN ease_factor int DEFAULT 3;
 
 ALTER TABLE flashcards
   ADD COLUMN interval int DEFAULT 1;

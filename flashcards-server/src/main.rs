@@ -137,25 +137,25 @@ async fn review_card(
                 let mut ease_factor = card.ease_factor().clone();
                 card.set_interval(card.interval() * card.ease_factor());
 
-                ease_factor = f32::min(5.0, ease_factor + 0.5);
+                ease_factor = u8::min(5, ease_factor + 1);
                 card.set_ease_factor(ease_factor);
             },
             CardDifficulty::Medium => {
                 let mut ease_factor = card.ease_factor().clone();
-                ease_factor = f32::min(5.0, ease_factor + 0.5);
+                ease_factor = u8::min(5, ease_factor + 1);
                 card.set_ease_factor(ease_factor);
             },
             CardDifficulty::Hard => {
-                card.set_interval(1.0);
+                card.set_interval(1);
 
                 let mut ease_factor = card.ease_factor().clone();
-                ease_factor = f32::max(1.0, ease_factor - 0.5);
+                ease_factor = u8::max(1, ease_factor - 1);
                 card.set_ease_factor(ease_factor);
             },
         }
 
         let mut dt = Utc::now();
-        let days_to_add = Days::new(card.interval().clone() as u64);
+        let days_to_add = Days::new(*card.interval() as u64);
         dt = dt.checked_add_days(days_to_add).unwrap();
 
         card.set_next_review(&format!("{dt}"));
