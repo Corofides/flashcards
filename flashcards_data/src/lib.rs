@@ -62,10 +62,10 @@ impl CardState {
             CardSide::Back => CardSide::Front,
         }
     }
-    pub fn get_side(&self) -> &CardSide {
+    pub fn side(&self) -> &CardSide {
         &self.side
     }
-    pub fn get_card(&self) -> &Card {
+    pub fn card(&self) -> &Card {
         &self.card
     }
 }
@@ -81,13 +81,13 @@ impl Card {
             interval: 1,
         }
     }
-    pub fn get_id(&self) -> u32 {
-        self.id
+    pub fn id(&self) -> &u32 {
+        &self.id
     }
-    pub fn get_front(&self) -> &str {
+    pub fn front(&self) -> &str {
         &self.front
     }
-    pub fn get_back(&self) -> &str {
+    pub fn back(&self) -> &str {
         &self.back
     }
     pub fn next_review(&self) -> &str {

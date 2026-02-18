@@ -24,9 +24,9 @@ pub struct CardProperties {
 fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 
 
-    let (title, content) = match card.get_side() {
-        CardSide::Front => ("Front", card.get_card().get_front()),
-        CardSide::Back => ("Back", card.get_card().get_back()),
+    let (title, content) = match card.side() {
+        CardSide::Front => ("Front", card.card().front()),
+        CardSide::Back => ("Back", card.card().back()),
     };
 
     html! {
@@ -91,13 +91,9 @@ fn Content() -> HtmlResult {
             wasm_bindgen_futures::spawn_local(async move {
 
                 let card = cards.get(*card_index).unwrap();
-                let card = card.get_card();
-
-                /*let delete_payload = DeleteCardPayload {
-                    id: card.get_id(),
-                };*/
-
-                let delete_card_path = format!("http://localhost:3000/cards/{}", card.get_id());
+                let card = card.card();
+                
+                let delete_card_path = format!("http://localhost:3000/cards/{}", card.id());
 
                 let response = Request::delete(&delete_card_path)
                     .send()
@@ -131,14 +127,14 @@ fn Content() -> HtmlResult {
             wasm_bindgen_futures::spawn_local(async move {
 
                 let current_card = cards.get(*card_index).unwrap();
-                let current_card = current_card.get_card();
+                let current_card = current_card.card();
 
                 let card_payload = CreateCardPayload {
-                    front: card.get_front().to_string(),
-                    back: card.get_back().to_string(),
+                    front: card.front().to_string(),
+                    back: card.back().to_string(),
                 };
 
-                let update_url = format!("http://localhost:3000/cards/{}", current_card.get_id());
+                let update_url = format!("http://localhost:3000/cards/{}", current_card.id());
 
                 let response = Request::put(&update_url)
                     .json(&card_payload)
@@ -168,8 +164,8 @@ fn Content() -> HtmlResult {
             wasm_bindgen_futures::spawn_local(async move {
 
                 let card_payload = CreateCardPayload {
-                    front: card.get_front().to_string(),
-                    back: card.get_back().to_string(),
+                    front: card.front().to_string(),
+                    back: card.back().to_string(),
                 };
 
                 let response = Request::post("http://localhost:3000/cards")
@@ -199,7 +195,7 @@ fn Content() -> HtmlResult {
 
         move |difficulty: CardDifficulty| {
 
-            let dispatcher = reducer.dispatcher();
+            let dispatcher = dispatcher.clone();
             let cards = cards.clone();
             let card_index = card_index.clone();
 
@@ -218,7 +214,7 @@ fn Content() -> HtmlResult {
                         difficulty, // : CardDifficulty::Medium
                     };
 
-                    let url = format!("http://localhost:3000/cards/{}/review", card.get_card().get_id());
+                    let url = format!("http://localhost:3000/cards/{}/review", card.card().id());
 
                     let response = Request::post(&url)
                         .json(&review_payload)

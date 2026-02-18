@@ -36,7 +36,7 @@ impl Reducible for FlashCardsState {
 
                 let card_position = new_cards.iter()
                     .position(|current_card| {
-                        current_card.get_card().get_id() == card.get_id()
+                        current_card.card().id() == card.id()
                     });
 
                 if let Some(card_position) = card_position {
@@ -45,10 +45,6 @@ impl Reducible for FlashCardsState {
 
                     new_cards[card_position] = new_card_state;
 
-                    // let current_card = new_cards.get_mut(card_position).unwrap();
-
-                    // current_card.get_card().set_front(card.get_front());
-                    // current_card.get_card().set_back(card.get_back());
                 }
 
                 FlashCardsState {
@@ -62,8 +58,8 @@ impl Reducible for FlashCardsState {
 
                 let new_card_state = CardState::new(card);
 
-                log!(JsValue::from(new_card_state.get_card().get_id()));
-                log!(JsValue::from(new_card_state.get_card().get_front()));
+                log!(JsValue::from(*new_card_state.card().id()));
+                log!(JsValue::from(new_card_state.card().front()));
 
                 new_cards.push(new_card_state);
 
@@ -77,7 +73,7 @@ impl Reducible for FlashCardsState {
 
                 let card_position = new_cards.iter()
                     .position(|current_card| {
-                        current_card.get_card().get_id() == card.get_id()
+                        current_card.card().id() == card.id()
                     });
 
                 if let Some(card_position) = card_position {

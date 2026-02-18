@@ -30,7 +30,7 @@ impl Reducible for NewCardState {
                 let card: Card = Card::new(
                     0,
                     new_front,
-                    (*self.card).get_back().to_string(),
+                    (*self.card).back().to_string(),
                 );
 
                 NewCardState {
@@ -41,7 +41,7 @@ impl Reducible for NewCardState {
 
                 let card: Card = Card::new(
                     0,
-                    (*self.card).get_front().to_string(),
+                    (*self.card).front().to_string(),
                     new_back
                 );
 

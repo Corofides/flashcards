@@ -55,12 +55,12 @@ impl Database {
                             next_review = ?
                         WHERE id = ?"
                     )
-                    .bind(card.get_front())
-                    .bind(card.get_back())
+                    .bind(card.front())
+                    .bind(card.back())
                     .bind(card.interval())
                     .bind(card.ease_factor())
                     .bind(card.next_review())
-                    .bind(card.get_id())
+                    .bind(card.id())
                     .execute(&pool)
                     .await;
 
@@ -73,9 +73,9 @@ impl Database {
         task::block_on(async {
             if let Some(pool) = self.pool.clone() {
                 let result = sqlx::query("INSERT INTO flashcards (id, front_of_card, back_of_card) VALUES (?, ?, ?)")
-                    .bind(card.get_id())
-                    .bind(card.get_front())
-                    .bind(card.get_back())
+                    .bind(card.id())
+                    .bind(card.front())
+                    .bind(card.back())
                     .execute(&pool)
                     .await;
 

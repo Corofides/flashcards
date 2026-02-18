@@ -130,8 +130,8 @@ pub fn AddNewCardForm(props: &AddCardProps) -> HtmlResult {
 
     Ok(html! {
         <form onsubmit={on_submit}>
-            <input value={result.get_front().to_string()} oninput={on_front_input} type="text" />
-            <input value={result.get_back().to_string()} oninput={on_back_input} type="text" />
+            <input value={result.front().to_string()} oninput={on_front_input} type="text" />
+            <input value={result.back().to_string()} oninput={on_back_input} type="text" />
             <button value="add_card">{"Add Card"}</button>
             <button value="update_card">{"Update Card"}</button>
         </form>
