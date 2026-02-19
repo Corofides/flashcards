@@ -26,6 +26,7 @@ pub struct CardProperties {
 #[derive(Properties, PartialEq)]
 pub struct StudyModeProperties {
     flip_card:  Callback<Card>,
+    cards: Vec<CardState>,
 }
 
 #[component]
@@ -46,29 +47,14 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 }
 
 #[component]
-fn StudyMode(StudyModeProperties { flip_card }: &StudyModeProperties) -> HtmlResult {
-    let (result, reducer) = use_flash_cards();
-    let cards = result?;
+fn StudyMode(StudyModeProperties { flip_card, cards }: &StudyModeProperties) -> HtmlResult {
 
     log::info!("Cards: {:?}", cards);
     let card_index = use_state(|| 0);
 
     let cards: Vec<CardState> = cards.iter()
         .filter(|card| {
-
             let card = card.card();
-            
-            /*let current_date = Utc::now();
-            let card_review_date: Result<DateTime<Utc>, ParseError> = card.next_review().parse(); //.expect("Valid date");
-
-            if let Ok(card_review_date) = card_review_date {
-                log::info!("Card Review Date Success: {}", card.id());
-                return card_review_date < current_date;
-            } else {
-                log::info!("Could not parse {}", card.id());
-            }
-
-            return false;*/
             card.needs_review()
         })
         .cloned()
@@ -84,12 +70,10 @@ fn StudyMode(StudyModeProperties { flip_card }: &StudyModeProperties) -> HtmlRes
 
     let prev_card = {
 
-        let dispatcher = reducer.dispatcher();
         let card_index = card_index.clone();
         let cards = cards.clone();
 
         move |_| {
-            let dispatcher = dispatcher.clone();
             let card_index = card_index.clone();
             let cards = cards.clone();
             let mut value = *card_index;
@@ -103,12 +87,10 @@ fn StudyMode(StudyModeProperties { flip_card }: &StudyModeProperties) -> HtmlRes
     };
 
     let next_card = {
-        let dispatcher = reducer.dispatcher();
         let card_index = card_index.clone();
         let cards = cards.clone();
 
         move |_| {
-            let dispatcher = dispatcher.clone();
             let card_index = card_index.clone();
             let cards = cards.clone();
             let mut value = *card_index;
@@ -125,7 +107,7 @@ fn StudyMode(StudyModeProperties { flip_card }: &StudyModeProperties) -> HtmlRes
 
     Ok(html! {
         <div>
-            //<CardDiv card={card.clone()} />
+            <CardDiv card={card.clone()} />
             <button onclick={prev_card}>{ "Prev Card" }</button>
             //<button onclick={flip_card}>{ "Turn Card" }</button>
             <button onclick={next_card}>{ "Next Card" }</button>
@@ -139,16 +121,8 @@ fn Content() -> HtmlResult {
     let (result, reducer) = use_flash_cards();
     let cards = result?;
 
-    let reviewed_cards: Vec<&CardState> = cards.iter()
-        .filter(|card| {
-            let card = card.card();
-            card.needs_review()
-        })
-        .collect();
-    
     let card_index = use_state(|| 0);
     let total_cards = cards.len();
-    let total_reviewed_cards = reviewed_cards.len();
 
     let next_card = {
         let card_index = card_index.clone();
@@ -357,7 +331,7 @@ fn Content() -> HtmlResult {
     Ok(html! {
         <div>
             <div>
-                <StudyMode flip_card={flip_card} />
+                <StudyMode cards={(*cards).clone()} flip_card={flip_card} />
             </div>
             <div>
                 <CardDiv card={card.clone()} />
