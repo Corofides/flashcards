@@ -25,7 +25,7 @@ pub struct CardProperties {
 
 #[derive(Properties, PartialEq)]
 pub struct StudyModeProperties {
-    flip_card:  Callback<Card>,
+    flip_card:  Callback<CardState>,
     cards: Vec<CardState>,
 }
 
@@ -103,13 +103,24 @@ fn StudyMode(StudyModeProperties { flip_card, cards }: &StudyModeProperties) -> 
         }
     };
 
+    let flip_card = {
+        let card_index = card_index.clone();
+        let cards = cards.clone();
+        let flip_card = flip_card.clone();
+
+        move |_| {
+            let card = cards[*card_index].clone();
+            flip_card.emit(card);
+        }
+    };
+
     let card = &cards[*card_index];
 
     Ok(html! {
         <div>
             <CardDiv card={card.clone()} />
             <button onclick={prev_card}>{ "Prev Card" }</button>
-            //<button onclick={flip_card}>{ "Turn Card" }</button>
+            <button onclick={flip_card}>{ "Turn Card" }</button>
             <button onclick={next_card}>{ "Next Card" }</button>
         </div>
     })
@@ -135,10 +146,28 @@ fn Content() -> HtmlResult {
     let flip_card = {
 
         let card_index = card_index.clone();
+        let cards = cards.clone();
         let dispatcher = reducer.dispatcher();
 
-        move |_| {
-            dispatcher.dispatch(FlashCardAction::FlipCard(*card_index));
+        move |card: CardState| {
+
+            let dispatcher = dispatcher.clone();
+            let cards = cards.clone();
+
+            let card_id = card.card().id();
+
+            let card = cards.iter()
+                .position(|card| {
+                    card.card().id() == card_id
+                });
+
+            log::info!("Card ID: {:?}", card_id);
+            log::info!("Card: {:?}", card);
+
+            if let Some(position) = card {
+                dispatcher.dispatch(FlashCardAction::FlipCard(position));
+            }
+        
         }
 
     };
