@@ -1,6 +1,8 @@
 use yew::prelude::*;
 use flashcards_data::{CardDifficulty, ReviewCardPayload, CreateCardPayload, Card, CardState, CardSide};
 use crate::reducers::flashcards::FlashCardAction;
+use chrono::{Utc, DateTime};
+use chrono::ParseError;
 
 mod card_hooks;
 mod reducers;
@@ -8,6 +10,7 @@ mod components;
 use crate::card_hooks::{use_flash_cards};
 use components::add_card_form::{AddNewCardForm};
 use gloo_net::http::Request;
+//use log::log;
 use gloo_console::log;
 
 #[derive(Properties, PartialEq)]
@@ -47,16 +50,31 @@ fn StudyMode(StudyModeProperties { flip_card }: &StudyModeProperties) -> HtmlRes
     let (result, reducer) = use_flash_cards();
     let cards = result?;
 
+    log::info!("Cards: {:?}", cards);
     let card_index = use_state(|| 0);
-    let total_cards = cards.len();
 
     let cards: Vec<CardState> = cards.iter()
         .filter(|card| {
+
             let card = card.card();
+            
+            /*let current_date = Utc::now();
+            let card_review_date: Result<DateTime<Utc>, ParseError> = card.next_review().parse(); //.expect("Valid date");
+
+            if let Ok(card_review_date) = card_review_date {
+                log::info!("Card Review Date Success: {}", card.id());
+                return card_review_date < current_date;
+            } else {
+                log::info!("Could not parse {}", card.id());
+            }
+
+            return false;*/
             card.needs_review()
         })
         .cloned()
         .collect();
+
+    let total_cards = cards.len();
 
     if total_cards == 0 {
         return Ok(html! {
@@ -107,7 +125,7 @@ fn StudyMode(StudyModeProperties { flip_card }: &StudyModeProperties) -> HtmlRes
 
     Ok(html! {
         <div>
-            <CardDiv card={card.clone()} />
+            //<CardDiv card={card.clone()} />
             <button onclick={prev_card}>{ "Prev Card" }</button>
             //<button onclick={flip_card}>{ "Turn Card" }</button>
             <button onclick={next_card}>{ "Next Card" }</button>
@@ -339,9 +357,12 @@ fn Content() -> HtmlResult {
     Ok(html! {
         <div>
             <div>
+                <StudyMode flip_card={flip_card} />
+            </div>
+            <div>
                 <CardDiv card={card.clone()} />
                 <button onclick={prev_card}>{ "Prev Card" }</button>
-                <button onclick={flip_card}>{ "Turn Card" }</button>
+                //<button onclick={flip_card}>{ "Turn Card" }</button>
                 <button onclick={next_card}>{ "Next Card" }</button>
                 <button onclick={delete_card}>{ "Delete Card" }</button>
             </div>
@@ -371,5 +392,6 @@ fn App() -> Html {
 }
 
 fn main() {
+    wasm_logger::init(wasm_logger::Config::default());
     yew::Renderer::<App>::new().render();
 }

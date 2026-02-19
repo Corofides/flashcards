@@ -1,6 +1,7 @@
 use sqlx::FromRow;
 use serde::{Serialize,Deserialize};
 use chrono::{Utc, DateTime};
+use chrono::format::ParseError;
 
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -74,11 +75,17 @@ impl CardState {
 
 impl Card {
     pub fn new(id: u32, front: String, back: String) -> Self {
+
+        let dt = Utc::now();
+        let date_time_string = dt.format("%Y-%m-%d %H:%M:%S%.9f %Z").to_string();
+        println!("{}", date_time_string);
+
         Card {
             id,
             front,
             back,
-            next_review: String::new(),
+            next_review: date_time_string, //Utc::now().to_string(),
+//String::new(),
             ease_factor: 3,
             interval: 1,
         }
@@ -118,8 +125,17 @@ impl Card {
     }
     pub fn needs_review(&self) -> bool {
         let current_date = Utc::now();
-        let card_review_date: DateTime<Utc> = self.next_review().parse().expect("Valid date");
+        let card_review_date: Result<DateTime<Utc>, ParseError> = self.next_review().parse(); //.expect("Valid date");
 
-        card_review_date < current_date
+        if let Ok(card_review_date) = card_review_date {
+            println!("Card Review Date Success: {}", self.id());
+            return card_review_date < current_date;
+        } else {
+            println!("Could not parse {}", self.id());
+        }
+            
+
+        return false;
+        //card_review_date < current_date
     }
 }
