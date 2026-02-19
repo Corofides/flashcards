@@ -558,6 +558,7 @@ dependencies = [
 name = "flashcards_data"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "serde",
  "sqlx",
 ]

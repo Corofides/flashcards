@@ -1,5 +1,7 @@
 use sqlx::FromRow;
 use serde::{Serialize,Deserialize};
+use chrono::{Utc, DateTime};
+
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub enum CardDifficulty {
@@ -113,5 +115,11 @@ impl Card {
     }
     pub fn set_interval(&mut self, interval: u8) {
         self.interval = interval;
+    }
+    pub fn needs_review(&self) -> bool {
+        let current_date = Utc::now();
+        let card_review_date: DateTime<Utc> = self.next_review().parse().expect("Valid date");
+
+        card_review_date < current_date
     }
 }

@@ -20,6 +20,11 @@ pub struct CardProperties {
     card: CardState,
 }
 
+#[derive(Properties, PartialEq)]
+pub struct StudyModeProperties {
+    flip_card:  Callback<Card>,
+}
+
 #[component]
 fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 
@@ -38,12 +43,94 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 }
 
 #[component]
+fn StudyMode(StudyModeProperties { flip_card }: &StudyModeProperties) -> HtmlResult {
+    let (result, reducer) = use_flash_cards();
+    let cards = result?;
+
+    let card_index = use_state(|| 0);
+    let total_cards = cards.len();
+
+    let cards: Vec<CardState> = cards.iter()
+        .filter(|card| {
+            let card = card.card();
+            card.needs_review()
+        })
+        .cloned()
+        .collect();
+
+    if total_cards == 0 {
+        return Ok(html! {
+            <div>{ "You have no cards to review at this time." }</div>
+        });
+    }
+
+    let prev_card = {
+
+        let dispatcher = reducer.dispatcher();
+        let card_index = card_index.clone();
+        let cards = cards.clone();
+
+        move |_| {
+            let dispatcher = dispatcher.clone();
+            let card_index = card_index.clone();
+            let cards = cards.clone();
+            let mut value = *card_index;
+
+            if *card_index > 0 {
+                value -= 1;
+            }
+
+            card_index.set(value);
+        }
+    };
+
+    let next_card = {
+        let dispatcher = reducer.dispatcher();
+        let card_index = card_index.clone();
+        let cards = cards.clone();
+
+        move |_| {
+            let dispatcher = dispatcher.clone();
+            let card_index = card_index.clone();
+            let cards = cards.clone();
+            let mut value = *card_index;
+
+            if *card_index < cards.len() - 1 {
+                value += 1;
+            }
+
+            card_index.set(value);
+        }
+    };
+
+    let card = &cards[*card_index];
+
+    Ok(html! {
+        <div>
+            <CardDiv card={card.clone()} />
+            <button onclick={prev_card}>{ "Prev Card" }</button>
+            //<button onclick={flip_card}>{ "Turn Card" }</button>
+            <button onclick={next_card}>{ "Next Card" }</button>
+        </div>
+    })
+    
+}
+
+#[component]
 fn Content() -> HtmlResult {
     let (result, reducer) = use_flash_cards();
     let cards = result?;
+
+    let reviewed_cards: Vec<&CardState> = cards.iter()
+        .filter(|card| {
+            let card = card.card();
+            card.needs_review()
+        })
+        .collect();
     
     let card_index = use_state(|| 0);
     let total_cards = cards.len();
+    let total_reviewed_cards = reviewed_cards.len();
 
     let next_card = {
         let card_index = card_index.clone();

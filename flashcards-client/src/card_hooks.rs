@@ -36,7 +36,7 @@ pub fn use_flash_cards() -> (SuspensionResult<Rc<Vec<CardState>>>, UseReducerHan
         let dispatcher = reducer.dispatcher();
         
         wasm_bindgen_futures::spawn_local(async move {
-            let fetched_cards: Vec<Card> = Request::get("http://localhost:3000/cards/due")
+            let fetched_cards: Vec<Card> = Request::get("http://localhost:3000/cards")
                 .send()
                 .await
                 .unwrap()
