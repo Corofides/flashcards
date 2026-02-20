@@ -26,6 +26,7 @@ pub struct CardProperties {
 #[derive(Properties, PartialEq)]
 pub struct StudyModeProperties {
     flip_card:  Callback<CardState>,
+    review_card: Callback<(CardState, CardDifficulty)>,
     cards: Vec<CardState>,
 }
 
@@ -52,7 +53,7 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 }
 
 #[component]
-fn StudyMode(StudyModeProperties { flip_card, cards }: &StudyModeProperties) -> HtmlResult {
+fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyModeProperties) -> HtmlResult {
 
     log::info!("Cards: {:?}", cards);
     let card_index = use_state(|| 0);
@@ -119,6 +120,21 @@ fn StudyMode(StudyModeProperties { flip_card, cards }: &StudyModeProperties) -> 
         }
     };
 
+    let review_card = {
+
+        let cards = cards.clone();
+        let card_index = card_index.clone();
+
+        move |difficulty: CardDifficulty| {
+
+            let cards = cards.clone();
+            let card_index = card_index.clone();
+            let card = cards[*card_index].clone();
+            review_card.emit((card, difficulty));
+            
+        }
+    };
+
     let card = &cards[*card_index];
 
     if card.is_front() {
@@ -135,9 +151,9 @@ fn StudyMode(StudyModeProperties { flip_card, cards }: &StudyModeProperties) -> 
     Ok(html! {
         <div>
             <CardDiv card={card.clone()} />
-            <button>{ "Easy" }</button>
-            <button>{ "Medium" }</button>
-            <button>{ "Hard" }</button>
+            <button on_click={review_card(CardDifficulty::Easy)}>{ "Easy" }</button>
+            <button on_click={review_card(CardDifficulty::Medium)}>{ "Medium" }</button>
+            <button on_click={review_card(CardDifficulty::Hard)}>{ "Hard" }</button>
         </div>
     })
     
@@ -313,6 +329,47 @@ fn Content() -> HtmlResult {
     };
 
     let review_card = {
+
+        let dispatcher = reducer.dispatcher();
+
+        move |(card, difficulty): (CardState, CardDifficulty)| {
+
+            let dispatcher = dispatcher.clone();
+
+            move |_| {
+
+                let dispatcher = dispatcher.clone();
+
+                wasm_bindgen_futures::spawn_local(async move {
+
+                    let review_payload = ReviewCardPayload {
+                        difficulty,
+                    };
+
+                    let url = format!("https://localhost:3000/cards/{}/review", card.card().id());
+
+                    let response = Request::post(&url)
+                        .json(&review_payload)
+                        .unwrap()
+                        .send()
+                        .await;
+
+                    match response {
+                        Ok(response) if response.ok() => {
+                            let reviewed_card: Card = response.json().await.unwrap();
+                            log!(format!("Reviewed Card: {:?}", &reviewed_card));
+                            dispatcher.dispatch(FlashCardAction::UpdateCard(reviewed_card));
+                        },
+                        _ => {},
+                    }
+
+                });
+            }
+            
+        }
+    };
+
+    /*let review_card = {
         let dispatcher = reducer.dispatcher();
         let cards = cards.clone();
         let card_index = card_index.clone();
@@ -359,7 +416,7 @@ fn Content() -> HtmlResult {
                 log!("Reviewing the card!");
             }
         }
-    };
+    }; */
 
     if cards.is_empty() {
         return Ok(html! {
@@ -376,7 +433,7 @@ fn Content() -> HtmlResult {
     Ok(html! {
         <div>
             <div>
-                <StudyMode cards={(*cards).clone()} flip_card={flip_card} />
+                <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
             </div>
             <div>
                 <CardDiv card={card.clone()} />
@@ -386,9 +443,9 @@ fn Content() -> HtmlResult {
                 <button onclick={delete_card}>{ "Delete Card" }</button>
             </div>
             <div>
-                <button onclick={review_card(CardDifficulty::Easy)}>{ "Easy" }</button>
-                <button onclick={review_card(CardDifficulty::Medium)}>{ "Medium" }</button>
-                <button onclick={review_card(CardDifficulty::Hard)}>{ "Hard" }</button>
+                //<button onclick={review_card(CardDifficulty::Easy)}>{ "Easy" }</button>
+                //<button onclick={review_card(CardDifficulty::Medium)}>{ "Medium" }</button>
+                //<button onclick={review_card(CardDifficulty::Hard)}>{ "Hard" }</button>
             </div>
             <div>
                 <AddNewCardForm on_update={update_card} on_add={add_card} />
