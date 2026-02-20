@@ -76,7 +76,7 @@ fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyModePr
 
         let card_index = card_index.clone();
 
-        move |_| {
+        Callback::from(move |_| {
             let card_index = card_index.clone();
             let mut value = *card_index;
 
@@ -85,14 +85,14 @@ fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyModePr
             }
 
             card_index.set(value);
-        }
+        })
     };
 
     let next_card = {
         let card_index = card_index.clone();
         let cards = cards.clone();
 
-        move |_| {
+        Callback::from(move |_| {
             let card_index = card_index.clone();
             let cards = cards.clone();
             let mut value = *card_index;
@@ -102,7 +102,7 @@ fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyModePr
             }
 
             card_index.set(value);
-        }
+        })
     };
 
     let flip_card = {
@@ -110,10 +110,10 @@ fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyModePr
         let cards = cards.clone();
         let flip_card = flip_card.clone();
 
-        move |_| {
+        Callback::from(move |_| {
             let card = cards[*card_index].clone();
             flip_card.emit(card);
-        }
+        })
     };
 
     let review_card = {
@@ -169,17 +169,17 @@ fn Content() -> HtmlResult {
 
     let next_card = {
         let card_index = card_index.clone();
-        move |_| {
+        Callback::from(move |_| {
             let value = (*card_index + 1) % total_cards;
             card_index.set(value);
-        }
+        })
     };
 
     let flip_card = {
         let cards = cards.clone();
         let dispatcher = reducer.dispatcher();
 
-        move |card: CardState| {
+        Callback::from(move |card: CardState| {
 
             let dispatcher = dispatcher.clone();
             let cards = cards.clone();
@@ -195,13 +195,14 @@ fn Content() -> HtmlResult {
                 dispatcher.dispatch(FlashCardAction::FlipCard(position));
             }
         
-        }
+        })
 
     };
 
     let prev_card = {
         let card_index = card_index.clone();
-        move |_| {
+
+        Callback::from(move |_| {
 
             let value = if *card_index == 0 {
                 total_cards.saturating_sub(1)
@@ -210,7 +211,7 @@ fn Content() -> HtmlResult {
             };
 
             card_index.set(value);
-        }
+        })
     };
 
     let delete_card = {
@@ -218,7 +219,7 @@ fn Content() -> HtmlResult {
         let cards = cards.clone();
         let card_index = card_index.clone();
 
-        move |_| {
+        Callback::from(move |_| {
             let dispatcher = dispatcher.clone();
             let cards = cards.clone();
             let card_index = card_index.clone();
@@ -246,7 +247,7 @@ fn Content() -> HtmlResult {
                 }
 
             });
-        }
+        })
     };
 
     let update_card = {
@@ -254,7 +255,7 @@ fn Content() -> HtmlResult {
         let cards = cards.clone();
         let card_index = card_index.clone();
 
-        move |card: Card| {
+        Callback::from(move |card: Card| {
             let dispatcher = dispatcher.clone();
             let cards = cards.clone();
             let card_index = card_index.clone();
@@ -287,12 +288,12 @@ fn Content() -> HtmlResult {
                     }
                 }
             });
-        }
+        })
     };
 
     let add_card = {
         let dispatcher = reducer.dispatcher();
-        move |card: Card| {
+        Callback::from(move |card: Card| {
 
             let dispatcher = dispatcher.clone();
             //"http://localhost:3000/cards"
@@ -319,8 +320,7 @@ fn Content() -> HtmlResult {
                     }
                 }
             });
-
-        }
+        })
     };
 
     let review_card = {
