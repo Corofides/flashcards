@@ -28,10 +28,10 @@ pub struct StudyModeProperties {
     cards: Vec<CardState>,
 }
 
-/*#[derive(Properties, PartialEq)]
-pub struct StudyModeControlProperties {
-    card: CardState,
-}*/
+#[derive(Properties, PartialEq)]
+pub struct ManageModeProperties {
+    cards: Vec<CardState>,
+}
 
 #[component]
 fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
@@ -48,6 +48,56 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
             <p>{content}</p>
         </>
     }
+}
+
+#[component]
+fn ManageMode(ManageModeProperties { cards }: &ManageModeProperties) -> HtmlResult {
+
+    let card_index = use_state(|| 0);
+    let cards = cards.clone();
+
+    let next_card = {
+        let card_index = card_index.clone();
+        let cards = cards.clone();
+
+        Callback::from(move |_| {
+
+            let mut value = *card_index;
+
+            if value < cards.len() - 1 {
+                value = value.saturating_add(1);
+            }
+
+            card_index.set(value);
+
+        })
+    };
+
+    let prev_card = {
+        let card_index = card_index.clone();
+        let cards = cards.clone();
+
+        Callback::from(move |_| {
+
+            let mut value = *card_index;
+
+            if value > 0 {
+                value = value.saturating_sub(1);
+            }
+
+            card_index.set(value);
+
+        })
+
+    };
+
+    Ok(html! {
+        <div>
+            <h1>{ "Manage Mode" }</h1>
+            <button onclick={next_card}>{ "Next Card" }</button>
+            <button onclick={prev_card}>{ "Previous Card" }</button>
+        </div>
+    }) 
 }
 
 #[component]
@@ -372,20 +422,13 @@ fn Content() -> HtmlResult {
 
     Ok(html! {
         <div>
-            <div>
-                <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
-            </div>
+            <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
+            <ManageMode cards={(*cards).clone()} />
             <div>
                 <CardDiv card={card.clone()} />
                 <button onclick={prev_card}>{ "Prev Card" }</button>
-                //<button onclick={flip_card}>{ "Turn Card" }</button>
                 <button onclick={next_card}>{ "Next Card" }</button>
                 <button onclick={delete_card}>{ "Delete Card" }</button>
-            </div>
-            <div>
-                //<button onclick={review_card(CardDifficulty::Easy)}>{ "Easy" }</button>
-                //<button onclick={review_card(CardDifficulty::Medium)}>{ "Medium" }</button>
-                //<button onclick={review_card(CardDifficulty::Hard)}>{ "Hard" }</button>
             </div>
             <div>
                 <AddNewCardForm on_update={update_card} on_add={add_card} />
