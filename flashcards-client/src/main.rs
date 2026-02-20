@@ -29,6 +29,11 @@ pub struct StudyModeProperties {
     cards: Vec<CardState>,
 }
 
+/*#[derive(Properties, PartialEq)]
+pub struct StudyModeControlProperties {
+    card: CardState,
+}*/
+
 #[component]
 fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 
@@ -116,12 +121,23 @@ fn StudyMode(StudyModeProperties { flip_card, cards }: &StudyModeProperties) -> 
 
     let card = &cards[*card_index];
 
+    if card.is_front() {
+        return Ok(html! {
+            <div>
+                <CardDiv card={card.clone()} />
+                <button onclick={prev_card}>{ "Prev Card" }</button>
+                <button onclick={flip_card}>{ "Turn Card" }</button>
+                <button onclick={next_card}>{ "Next Card" }</button>
+            </div>
+        })
+    }
+
     Ok(html! {
         <div>
             <CardDiv card={card.clone()} />
-            <button onclick={prev_card}>{ "Prev Card" }</button>
-            <button onclick={flip_card}>{ "Turn Card" }</button>
-            <button onclick={next_card}>{ "Next Card" }</button>
+            <button>{ "Easy" }</button>
+            <button>{ "Medium" }</button>
+            <button>{ "Hard" }</button>
         </div>
     })
     

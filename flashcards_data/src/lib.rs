@@ -71,6 +71,12 @@ impl CardState {
     pub fn card(&self) -> &Card {
         &self.card
     }
+    pub fn is_front(&self) -> bool {
+        self.side == CardSide::Front
+    }
+    pub fn is_back(&self) -> bool {
+        !&self.is_front()
+    }
 }
 
 impl Card {
