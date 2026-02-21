@@ -50,47 +50,86 @@ fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
     }
 }
 
+fn make_prev_card_callback(card_index: UseStateHandle<usize>) -> Callback<yew::MouseEvent> {
+    let card_index = card_index.clone();
+
+    Callback::from(move |_| {
+        let mut value = *card_index;
+
+        if value > 0 {
+            value = value.saturating_sub(1);
+        }
+
+        card_index.set(value);
+
+    })
+}
+
+fn make_next_card_callback(card_index: UseStateHandle<usize>, max_size: usize) -> Callback<yew::MouseEvent> {
+    let card_index = card_index.clone();
+    let max_size = max_size.clone();
+
+    Callback::from(move |_| {
+        let mut value = *card_index;
+
+        if value < max_size {
+            value = value.saturating_add(1);
+        }
+
+        card_index.set(value);
+
+    })
+}
+
+fn make_flip_card_emit_callback(
+        card_index: UseStateHandle<usize>,
+        cards: &Vec<CardState>,
+        flip_card: Callback<CardState> 
+    ) -> Callback<yew::MouseEvent> {
+
+    let card_index = card_index.clone();
+    let cards = cards.clone();
+    let flip_card = flip_card.clone();
+
+    Callback::from(move |_| {
+        let card = cards[*card_index].clone();
+        flip_card.emit(card);
+    })
+
+}
+
+fn make_review_card_emit_factory(
+        card_index: UseStateHandle<usize>,
+        cards: Vec<CardState>,
+        review_card: Callback<(CardState, CardDifficulty)>
+    ) -> Box<dyn Fn(CardDifficulty) -> Callback<yew::MouseEvent>> {
+
+    let review_card = review_card.clone();
+    let cards = cards.clone();
+    let card_index = card_index.clone();
+
+    Box::new(move |difficulty: CardDifficulty| {
+
+        let review_card = review_card.clone();
+        let card = cards[*card_index].clone();
+        let difficulty = difficulty.clone();
+
+        Callback::from(move |_e: MouseEvent | {
+            review_card.emit((card.clone(), difficulty.clone()));
+        })
+    })
+
+}
+
 #[component]
 fn ManageMode(ManageModeProperties { cards }: &ManageModeProperties) -> HtmlResult {
 
     let card_index = use_state(|| 0);
     let cards = cards.clone();
 
-    let next_card = {
-        let card_index = card_index.clone();
-        let cards = cards.clone();
-
-        Callback::from(move |_| {
-
-            let mut value = *card_index;
-
-            if value < cards.len() - 1 {
-                value = value.saturating_add(1);
-            }
-
-            card_index.set(value);
-
-        })
-    };
-
-    let prev_card = {
-        let card_index = card_index.clone();
-        let cards = cards.clone();
-
-        Callback::from(move |_| {
-
-            let mut value = *card_index;
-
-            if value > 0 {
-                value = value.saturating_sub(1);
-            }
-
-            card_index.set(value);
-
-        })
-
-    };
-
+    let next_card = make_next_card_callback(card_index.clone(), cards.len() - 1);
+    let prev_card = make_prev_card_callback(card_index.clone());
+    
     Ok(html! {
         <div>
             <h1>{ "Manage Mode" }</h1>
@@ -122,68 +161,10 @@ fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyModePr
         });
     }
 
-    let prev_card = {
-
-        let card_index = card_index.clone();
-
-        Callback::from(move |_| {
-            let card_index = card_index.clone();
-            let mut value = *card_index;
-
-            if *card_index > 0 {
-                value -= 1;
-            }
-
-            card_index.set(value);
-        })
-    };
-
-    let next_card = {
-        let card_index = card_index.clone();
-        let cards = cards.clone();
-
-        Callback::from(move |_| {
-            let card_index = card_index.clone();
-            let cards = cards.clone();
-            let mut value = *card_index;
-
-            if *card_index < cards.len() - 1 {
-                value += 1;
-            }
-
-            card_index.set(value);
-        })
-    };
-
-    let flip_card = {
-        let card_index = card_index.clone();
-        let cards = cards.clone();
-        let flip_card = flip_card.clone();
-
-        Callback::from(move |_| {
-            let card = cards[*card_index].clone();
-            flip_card.emit(card);
-        })
-    };
-
-    let review_card = {
-
-        let review_card = review_card.clone();
-        let cards = cards.clone();
-        let card_index = card_index.clone();
-
-        move |difficulty: CardDifficulty| {
-
-            let review_card = review_card.clone();
-            let card = cards[*card_index].clone();
-            let difficulty = difficulty.clone();
-
-            Callback::from(move |_e: MouseEvent | {
-                review_card.emit((card.clone(), difficulty.clone()));
-            })
-        }
-        
-    };
+    let prev_card = make_prev_card_callback(card_index.clone());
+    let next_card = make_next_card_callback(card_index.clone(), cards.len() - 1);
+    let flip_card = make_flip_card_emit_callback(card_index.clone(), &cards, flip_card.clone());
+    let review_card = make_review_card_emit_factory(card_index.clone(), cards.clone(), review_card.clone());
     
     let card = &cards[*card_index];
 
@@ -217,14 +198,9 @@ fn Content() -> HtmlResult {
     let card_index = use_state(|| 0);
     let total_cards = cards.len();
 
-    let next_card = {
-        let card_index = card_index.clone();
-        Callback::from(move |_| {
-            let value = (*card_index + 1) % total_cards;
-            card_index.set(value);
-        })
-    };
-
+    let next_card = make_next_card_callback(card_index.clone(), total_cards - 1);
+    let prev_card = make_prev_card_callback(card_index.clone());
+    
     let flip_card = {
         let cards = cards.clone();
         let dispatcher = reducer.dispatcher();
@@ -249,21 +225,7 @@ fn Content() -> HtmlResult {
 
     };
 
-    let prev_card = {
-        let card_index = card_index.clone();
-
-        Callback::from(move |_| {
-
-            let value = if *card_index == 0 {
-                total_cards.saturating_sub(1)
-            } else {
-                *card_index - 1
-            };
-
-            card_index.set(value);
-        })
-    };
-
+        
     let delete_card = {
         let dispatcher = reducer.dispatcher();
         let cards = cards.clone();
