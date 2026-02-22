@@ -31,6 +31,7 @@ pub struct StudyModeProperties {
 #[derive(Properties, PartialEq)]
 pub struct ManageModeProperties {
     cards: Vec<CardState>,
+    delete_card: Callback<CardState>,
 }
 
 #[component]
@@ -98,6 +99,23 @@ fn make_flip_card_emit_callback(
 
 }
 
+fn delete_card_emit_callback(
+        cards: Vec<CardState>,
+        delete_card: Callback<CardState>,
+        card_index: UseStateHandle<usize>,
+    ) -> Callback<yew::MouseEvent> {
+
+    let cards = cards.clone();
+    let delete_card = delete_card.clone();
+    let card_index = card_index.clone();
+
+    Callback::from(move |_| {
+        let card = cards[*card_index].clone();
+        delete_card.emit(card);
+    })
+        
+}
+
 fn make_review_card_emit_factory(
         card_index: UseStateHandle<usize>,
         cards: Vec<CardState>,
@@ -122,18 +140,23 @@ fn make_review_card_emit_factory(
 }
 
 #[component]
-fn ManageMode(ManageModeProperties { cards }: &ManageModeProperties) -> HtmlResult {
+fn ManageMode(ManageModeProperties { delete_card, cards }: &ManageModeProperties) -> HtmlResult {
 
     let card_index = use_state(|| 0);
     let cards = cards.clone();
 
     let next_card = make_next_card_callback(card_index.clone(), cards.len() - 1);
     let prev_card = make_prev_card_callback(card_index.clone());
+    let delete_card = delete_card_emit_callback(cards.clone(), delete_card.clone(), card_index.clone());
+
+    let card = &cards[*card_index];
     
     Ok(html! {
         <div>
             <h1>{ "Manage Mode" }</h1>
+            <CardDiv card={card.clone()} />
             <button onclick={next_card}>{ "Next Card" }</button>
+            <button onclick={delete_card}>{ "Delete" }</button>
             <button onclick={prev_card}>{ "Previous Card" }</button>
         </div>
     }) 
@@ -227,18 +250,18 @@ fn Content() -> HtmlResult {
 
         
     let delete_card = {
+
         let dispatcher = reducer.dispatcher();
-        let cards = cards.clone();
         let card_index = card_index.clone();
 
-        Callback::from(move |_| {
+        Callback::from(move |card: CardState| {
             let dispatcher = dispatcher.clone();
-            let cards = cards.clone();
+            let card = card.clone();
             let card_index = card_index.clone();
 
             wasm_bindgen_futures::spawn_local(async move {
 
-                let card = cards.get(*card_index).unwrap();
+                let card = card.clone();
                 let card = card.card();
                 
                 let delete_card_path = format!("http://localhost:3000/cards/{}", card.id());
@@ -385,12 +408,12 @@ fn Content() -> HtmlResult {
     Ok(html! {
         <div>
             <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
-            <ManageMode cards={(*cards).clone()} />
+            <ManageMode cards={(*cards).clone()} delete_card={delete_card} />
             <div>
                 <CardDiv card={card.clone()} />
                 <button onclick={prev_card}>{ "Prev Card" }</button>
                 <button onclick={next_card}>{ "Next Card" }</button>
-                <button onclick={delete_card}>{ "Delete Card" }</button>
+                //<button onclick={delete_card}>{ "Delete Card" }</button>
             </div>
             <div>
                 <AddNewCardForm on_update={update_card} on_add={add_card} />
