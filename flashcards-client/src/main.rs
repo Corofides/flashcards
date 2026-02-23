@@ -9,6 +9,7 @@ use crate::card_hooks::{use_flash_cards};
 use components::{
     add_card_form::{AddNewCardForm},
     managemode::{ManageMode},
+    studymode::{StudyMode},
 };
 use gloo_net::http::Request;
 //use log::log;
@@ -150,56 +151,7 @@ fn make_add_card_emit_callback(
 }
 
 
-#[component]
-fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyModeProperties) -> HtmlResult {
 
-    log::info!("Cards: {:?}", cards);
-    let card_index = use_state(|| 0);
-
-    let cards: Vec<CardState> = cards.iter()
-        .filter(|card| {
-            let card = card.card();
-            card.needs_review()
-        })
-        .cloned()
-        .collect();
-
-    let total_cards = cards.len();
-
-    if total_cards == 0 {
-        return Ok(html! {
-            <div>{ "You have no cards to review at this time." }</div>
-        });
-    }
-
-    let prev_card = make_prev_card_callback(card_index.clone());
-    let next_card = make_next_card_callback(card_index.clone(), cards.len() - 1);
-    let flip_card = make_flip_card_emit_callback(card_index.clone(), &cards, flip_card.clone());
-    let review_card = make_review_card_emit_factory(card_index.clone(), cards.clone(), review_card.clone());
-    
-    let card = &cards[*card_index];
-
-    if card.is_front() {
-        return Ok(html! {
-            <div>
-                <CardDiv card={card.clone()} />
-                <button onclick={prev_card}>{ "Prev Card" }</button>
-                <button onclick={flip_card}>{ "Turn Card" }</button>
-                <button onclick={next_card}>{ "Next Card" }</button>
-            </div>
-        })
-    }
-
-    Ok(html! {
-        <div>
-            <CardDiv card={card.clone()} />
-            <button onclick={review_card(CardDifficulty::Easy)}>{ "Easy" }</button>
-            <button onclick={review_card(CardDifficulty::Medium)}>{ "Medium" }</button>
-            <button onclick={review_card(CardDifficulty::Hard)}>{ "Hard" }</button>
-        </div>
-    })
-    
-}
 
 #[component]
 fn Content() -> HtmlResult {
@@ -207,10 +159,6 @@ fn Content() -> HtmlResult {
     let cards = result?;
 
     let card_index = use_state(|| 0);
-    let total_cards = cards.len();
-
-    let next_card = make_next_card_callback(card_index.clone(), total_cards - 1);
-    let prev_card = make_prev_card_callback(card_index.clone());
     
     let flip_card = {
         let cards = cards.clone();
@@ -261,8 +209,9 @@ fn Content() -> HtmlResult {
                 match response {
                     Ok(response) if response.ok() => {
                         log!("Card was successfully removed!");
+                        let value: usize = *card_index;
                         dispatcher.dispatch(FlashCardAction::RemoveCard(card.clone()));
-                        card_index.set((*card_index).saturating_sub(1));
+                        card_index.set(value.saturating_sub(1));
                     },
                     _ => {
                         log!("Error: Could not remove card");
@@ -391,17 +340,10 @@ fn Content() -> HtmlResult {
         });
     }
 
-    let card = cards.get(*card_index).unwrap(); //.clone();
-
     Ok(html! {
         <div>
             <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
             <ManageMode cards={(*cards).clone()} add_card={add_card} delete_card={delete_card} />
-            <div>
-                <CardDiv card={card.clone()} />
-                <button onclick={prev_card}>{ "Prev Card" }</button>
-                <button onclick={next_card}>{ "Next Card" }</button>
-            </div>
         </div>
     })
 

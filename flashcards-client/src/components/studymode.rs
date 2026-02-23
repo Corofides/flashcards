@@ -1,0 +1,71 @@
+use yew::{
+    html,
+    HtmlResult,
+    use_state,
+    component,
+};
+use crate::{
+    CardDiv,
+    make_flip_card_emit_callback,
+    make_review_card_emit_factory,
+    make_next_card_callback,
+    make_prev_card_callback,
+    StudyModeProperties,
+};
+use flashcards_data::{
+    CardState,
+    CardDifficulty,
+};
+
+
+
+#[component]
+pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyModeProperties) -> HtmlResult {
+
+    log::info!("Cards: {:?}", cards);
+    let card_index = use_state(|| 0);
+
+    let cards: Vec<CardState> = cards.iter()
+        .filter(|card| {
+            let card = card.card();
+            card.needs_review()
+        })
+        .cloned()
+        .collect();
+
+    let total_cards = cards.len();
+
+    if total_cards == 0 {
+        return Ok(html! {
+            <div>{ "You have no cards to review at this time." }</div>
+        });
+    }
+
+    let prev_card = make_prev_card_callback(card_index.clone());
+    let next_card = make_next_card_callback(card_index.clone(), cards.len() - 1);
+    let flip_card = make_flip_card_emit_callback(card_index.clone(), &cards, flip_card.clone());
+    let review_card = make_review_card_emit_factory(card_index.clone(), cards.clone(), review_card.clone());
+    
+    let card = &cards[*card_index];
+
+    if card.is_front() {
+        return Ok(html! {
+            <div>
+                <CardDiv card={card.clone()} />
+                <button onclick={prev_card}>{ "Prev Card" }</button>
+                <button onclick={flip_card}>{ "Turn Card" }</button>
+                <button onclick={next_card}>{ "Next Card" }</button>
+            </div>
+        })
+    }
+
+    Ok(html! {
+        <div>
+            <CardDiv card={card.clone()} />
+            <button onclick={review_card(CardDifficulty::Easy)}>{ "Easy" }</button>
+            <button onclick={review_card(CardDifficulty::Medium)}>{ "Medium" }</button>
+            <button onclick={review_card(CardDifficulty::Hard)}>{ "Hard" }</button>
+        </div>
+    })
+    
+}
