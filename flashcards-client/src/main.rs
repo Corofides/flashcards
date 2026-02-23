@@ -150,6 +150,12 @@ fn make_add_card_emit_callback(
     })
 }
 
+#[derive(PartialEq)]
+pub enum FlashCardMode {
+    Study,
+    Manage,
+}
+
 
 
 
@@ -158,8 +164,32 @@ fn Content() -> HtmlResult {
     let (result, reducer) = use_flash_cards();
     let cards = result?;
 
+    let current_mode = use_state(|| FlashCardMode::Study);
     let card_index = use_state(|| 0);
-    
+   
+    let change_mode = {
+
+        let current_mode = current_mode.clone();
+
+        Callback::from(move |_| {
+            let current_mode = current_mode.clone();
+
+            let next_mode = match *current_mode {
+                FlashCardMode::Study => {
+                    FlashCardMode::Manage
+                },
+                FlashCardMode::Manage => {
+                    FlashCardMode::Study
+                },
+            };
+
+            current_mode.set(next_mode);
+
+        
+
+        })
+    };
+
     let flip_card = {
         let cards = cards.clone();
         let dispatcher = reducer.dispatcher();
@@ -340,9 +370,18 @@ fn Content() -> HtmlResult {
         });
     }
 
+    if *current_mode == FlashCardMode::Study {
+        return Ok(html! {
+            <div>
+                <button onclick={change_mode}>{ "Manage Mode" }</button>
+                <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
+            </div>
+        });
+    }
+
     Ok(html! {
         <div>
-            <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
+            <button onclick={change_mode}>{ "Study Mode" }</button>
             <ManageMode cards={(*cards).clone()} add_card={add_card} delete_card={delete_card} />
         </div>
     })
