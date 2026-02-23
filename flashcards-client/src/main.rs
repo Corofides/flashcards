@@ -37,7 +37,6 @@ pub struct ManageModeProperties {
 #[component]
 fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
 
-
     let (title, content) = match card.side() {
         CardSide::Front => ("Front", card.card().front()),
         CardSide::Back => ("Back", card.card().back()),
@@ -149,6 +148,16 @@ fn ManageMode(ManageModeProperties { delete_card, cards }: &ManageModeProperties
     let prev_card = make_prev_card_callback(card_index.clone());
     let delete_card = delete_card_emit_callback(cards.clone(), delete_card.clone(), card_index.clone());
 
+    let update_card = {
+        Callback::from(move |_| {
+        })
+    };
+
+    let add_card = {
+        Callback::from(move |_| {
+        })
+    };
+
     let card = &cards[*card_index];
     
     Ok(html! {
@@ -158,6 +167,11 @@ fn ManageMode(ManageModeProperties { delete_card, cards }: &ManageModeProperties
             <button onclick={next_card}>{ "Next Card" }</button>
             <button onclick={delete_card}>{ "Delete" }</button>
             <button onclick={prev_card}>{ "Previous Card" }</button>
+            <h1>{ "Add Card" }</h1>
+            <div>
+                <AddNewCardForm on_update={update_card} on_add={add_card} />
+            </div>
+
         </div>
     }) 
 }
@@ -413,12 +427,8 @@ fn Content() -> HtmlResult {
                 <CardDiv card={card.clone()} />
                 <button onclick={prev_card}>{ "Prev Card" }</button>
                 <button onclick={next_card}>{ "Next Card" }</button>
-                //<button onclick={delete_card}>{ "Delete Card" }</button>
             </div>
-            <div>
-                <AddNewCardForm on_update={update_card} on_add={add_card} />
-            </div>
-        </div>
+                    </div>
     })
 
 }
