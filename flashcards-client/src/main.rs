@@ -32,6 +32,7 @@ pub struct StudyModeProperties {
 pub struct ManageModeProperties {
     cards: Vec<CardState>,
     delete_card: Callback<CardState>,
+    add_card: Callback<Card>,
 }
 
 #[component]
@@ -138,8 +139,20 @@ fn make_review_card_emit_factory(
 
 }
 
+fn make_add_card_emit_callback(
+        add_card: Callback<Card>,
+    ) -> Callback<Card> {
+
+    let add_card = add_card.clone();
+
+    Callback::from(move |card: Card| {
+        let card = card.clone();
+        add_card.emit(card);
+    })
+}
+
 #[component]
-fn ManageMode(ManageModeProperties { delete_card, cards }: &ManageModeProperties) -> HtmlResult {
+fn ManageMode(ManageModeProperties { add_card, delete_card, cards }: &ManageModeProperties) -> HtmlResult {
 
     let card_index = use_state(|| 0);
     let cards = cards.clone();
@@ -147,16 +160,17 @@ fn ManageMode(ManageModeProperties { delete_card, cards }: &ManageModeProperties
     let next_card = make_next_card_callback(card_index.clone(), cards.len() - 1);
     let prev_card = make_prev_card_callback(card_index.clone());
     let delete_card = delete_card_emit_callback(cards.clone(), delete_card.clone(), card_index.clone());
+    let add_card = make_add_card_emit_callback(add_card.clone());
 
     let update_card = {
         Callback::from(move |_| {
         })
     };
 
-    let add_card = {
+    /* let add_card = {
         Callback::from(move |_| {
         })
-    };
+    }; */
 
     let card = &cards[*card_index];
     
@@ -422,13 +436,13 @@ fn Content() -> HtmlResult {
     Ok(html! {
         <div>
             <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
-            <ManageMode cards={(*cards).clone()} delete_card={delete_card} />
+            <ManageMode cards={(*cards).clone()} add_card={add_card} delete_card={delete_card} />
             <div>
                 <CardDiv card={card.clone()} />
                 <button onclick={prev_card}>{ "Prev Card" }</button>
                 <button onclick={next_card}>{ "Next Card" }</button>
             </div>
-                    </div>
+        </div>
     })
 
 }
