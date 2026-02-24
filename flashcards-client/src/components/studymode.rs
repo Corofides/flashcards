@@ -5,11 +5,8 @@ use yew::{
     component,
 };
 use crate::{
+    Callbacks,
     CardDiv,
-    make_flip_card_emit_callback,
-    make_review_card_emit_factory,
-    make_next_card_callback,
-    make_prev_card_callback,
     StudyModeProperties,
 };
 use flashcards_data::{
@@ -41,10 +38,10 @@ pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyMo
         });
     }
 
-    let prev_card = make_prev_card_callback(card_index.clone());
-    let next_card = make_next_card_callback(card_index.clone(), cards.len() - 1);
-    let flip_card = make_flip_card_emit_callback(card_index.clone(), &cards, flip_card.clone());
-    let review_card = make_review_card_emit_factory(card_index.clone(), cards.clone(), review_card.clone());
+    let prev_card = Callbacks::make_prev_card_callback(card_index.clone());
+    let next_card = Callbacks::make_next_card_callback(card_index.clone(), cards.len() - 1);
+    let flip_card = Callbacks::make_flip_card_emit_callback(card_index.clone(), &cards, flip_card.clone());
+    let review_card = Callbacks::make_review_card_emit_factory(card_index.clone(), cards.clone(), review_card.clone());
     
     let card = &cards[*card_index];
 

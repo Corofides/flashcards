@@ -1,11 +1,8 @@
 use yew::{Properties, HtmlResult, use_state, Callback, component, html};
 use crate::{
+    Callbacks,
     CardDiv, 
     AddNewCardForm,
-    make_add_card_emit_callback,
-    delete_card_emit_callback,
-    make_prev_card_callback,
-    make_next_card_callback,
     Card,
     CardState,
 };
@@ -23,10 +20,10 @@ pub fn ManageMode(ManageModeProperties { add_card, delete_card, cards }: &Manage
     let card_index = use_state(|| 0);
     let cards = cards.clone();
 
-    let next_card = make_next_card_callback(card_index.clone(), cards.len() - 1);
-    let prev_card = make_prev_card_callback(card_index.clone());
-    let delete_card = delete_card_emit_callback(cards.clone(), delete_card.clone(), card_index.clone());
-    let add_card = make_add_card_emit_callback(add_card.clone());
+    let next_card = Callbacks::make_next_card_callback(card_index.clone(), cards.len() - 1);
+    let prev_card = Callbacks::make_prev_card_callback(card_index.clone());
+    let delete_card = Callbacks::delete_card_emit_callback(cards.clone(), delete_card.clone(), card_index.clone());
+    let add_card = Callbacks::make_add_card_emit_callback(add_card.clone());
 
     let update_card = {
         Callback::from(move |_| {
