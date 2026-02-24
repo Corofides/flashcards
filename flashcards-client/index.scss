@@ -10,6 +10,11 @@
   --text-main: #1f2937;
   --text-muted: #6b7280;
   --bg-card: rgba(255, 255, 255, 0.8);
+  --background-color: #f3f4f6;
+}
+
+body {
+  background-color: var(--background-color);
 }
 
 .card {
@@ -85,7 +90,7 @@
   gap: 20px;
   padding: 20px;
   justify-content: center;
-  background: #f3f4f6; /* Light background to show off the glass effect */
+  background: var(--background-color); /* Light background to show off the glass effect */
 }
 
 .nav-btn {

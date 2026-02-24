@@ -5,6 +5,7 @@ use yew::{
     component,
 };
 use crate::{
+    components::actionbutton::ActionButton,
     FlashCardMode,
     Callbacks,
     CardDiv,
@@ -54,7 +55,8 @@ pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyMo
             <div>
                 <CardDiv mode={FlashCardMode::Study} card={card.clone()} />
                 <div class="button-container">
-                    <button disabled={!has_previous} class="nav-btn" aria-label="Previous" onclick={prev_card}>{ "\u{2B05}" }</button>
+                    <ActionButton enabled={has_previous} aria_label="Previous" onclick={prev_card} icon="\u{2B05}" />
+                    //<button disabled={!has_previous} class="nav-btn" aria-label="Previous" onclick={prev_card}>{ "\u{2B05}" }</button>
                     <button onclick={flip_card}>{ "Turn Card" }</button>
                     <button disabled={!has_next} class="nav-btn" aria-label="Next" onclick={next_card}>{ "\u{27A1}" }</button>
                 </div>
