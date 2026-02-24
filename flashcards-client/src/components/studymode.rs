@@ -5,6 +5,7 @@ use yew::{
     component,
 };
 use crate::{
+    FlashCardMode,
     Callbacks,
     CardDiv,
     StudyModeProperties,
@@ -48,7 +49,7 @@ pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyMo
     if card.is_front() {
         return Ok(html! {
             <div>
-                <CardDiv card={card.clone()} />
+                <CardDiv mode={FlashCardMode::Study} card={card.clone()} />
                 <button onclick={prev_card}>{ "Prev Card" }</button>
                 <button onclick={flip_card}>{ "Turn Card" }</button>
                 <button onclick={next_card}>{ "Next Card" }</button>
@@ -58,7 +59,7 @@ pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyMo
 
     Ok(html! {
         <div>
-            <CardDiv card={card.clone()} />
+            <CardDiv mode={FlashCardMode::Study} card={card.clone()} />
             <button onclick={review_card(CardDifficulty::Easy)}>{ "Easy" }</button>
             <button onclick={review_card(CardDifficulty::Medium)}>{ "Medium" }</button>
             <button onclick={review_card(CardDifficulty::Hard)}>{ "Hard" }</button>
