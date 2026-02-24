@@ -16,10 +16,16 @@ fn render_for_study(card: &CardState) -> Html {
     };
 
     html! {
-        <>
-            <h1>{title}</h1>
-            <p>{content}</p>
-        </>
+        <div class={"card card--study"}>
+            <div class={"card-content"}>
+                <h2 class="title">{title}</h2>
+                <p class="description">
+                    {content}
+                </p>
+                <button class="action-btn">{ "Turn Card" }</button>
+
+            </div>
+        </div>
     }
 }
 
@@ -28,14 +34,14 @@ fn render_for_manage(card: &CardState) -> Html {
     let card = card.card();
 
     html! {
-        <>
+        <div class={"card card--manage"} >
             <h1>{ "Card" }</h1>
             <div>{ format!("Next Review: ") }</div>
             <div>{ format!("Front of Card: {}", card.front()) }</div>
             <div>{ format!("Back of Card: {}", card.back()) }</div>
             <div>{ format!("Ease Factor: {}", card.ease_factor()) }</div>
             <div>{ format!("{:?}", card) }</div>
-        </>
+        </div>
     }
 }
 

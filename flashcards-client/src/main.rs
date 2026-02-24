@@ -249,7 +249,7 @@ fn Content() -> HtmlResult {
 
     if *current_mode == FlashCardMode::Study {
         return Ok(html! {
-            <div>
+            <div class="main main--study">
                 <button onclick={change_mode}>{ "Manage Mode" }</button>
                 <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
             </div>

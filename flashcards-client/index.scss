@@ -1,0 +1,140 @@
+.main--study {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+:root {
+  --primary-color: #6366f1;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --bg-card: rgba(255, 255, 255, 0.8);
+}
+
+.card {
+  width: 320px;
+  background: var(--bg-card);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px); /* The "Glass" effect */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Hover effect to make it feel responsive */
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.card-image {
+  height: 180px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+}
+
+.card-content {
+  padding: 24px;
+}
+
+.tag {
+  background: #eef2ff;
+  color: var(--primary-color);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 50px;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 16px 0 8px;
+  font-size: 22px;
+  color: var(--text-main);
+}
+
+.description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.action-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.action-btn:hover {
+  opacity: 0.9;
+}
+
+
+/* Buttons */
+.button-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  justify-content: center;
+  background: #f3f4f6; /* Light background to show off the glass effect */
+}
+
+.nav-btn {
+  /* Dimensions & Shape */
+  width: 50px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  
+  /* Glassmorphism Look */
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  
+  /* Centering the Arrow */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Styling the Arrow */
+  color: #6366f1; /* Matching your card's primary color */
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Hover State */
+.nav-btn:hover {
+  background: #6366f1;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* Active State (Click) */
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+.nav-btn:disabled {
+  /* Visual changes */
+  background: rgba(229, 231, 235, 0.5); /* Faded grey */
+  color: #9ca3af; /* Muted text color */
+  border: 1px solid rgba(209, 213, 219, 0.3);
+  
+  /* Remove interactivity */
+  cursor: not-allowed;
+  pointer-events: none; /* Prevents hover/click states from firing */
+  transform: none; /* Ensures it doesn't scale up on hover */
+  box-shadow: none;
+  backdrop-filter: none; /* Optional: remove blur to look 'flatter' */
+}
