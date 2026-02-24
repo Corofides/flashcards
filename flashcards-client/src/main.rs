@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use flashcards_data::{CardDifficulty, ReviewCardPayload, CreateCardPayload, Card, CardState, CardSide};
+use flashcards_data::{ CardDifficulty, ReviewCardPayload, CreateCardPayload, Card, CardState };
 use crate::reducers::flashcards::FlashCardAction;
 
 mod card_hooks;
@@ -10,9 +10,9 @@ use components::{
     add_card_form::{AddNewCardForm},
     managemode::{ManageMode},
     studymode::{StudyMode},
+    card::{CardDiv},
 };
 use gloo_net::http::Request;
-//use log::log;
 use gloo_console::log;
 
 #[derive(Properties, PartialEq)]
@@ -21,33 +21,10 @@ pub struct Props {
 }
 
 #[derive(Properties, PartialEq)]
-pub struct CardProperties {
-    card: CardState,
-}
-
-#[derive(Properties, PartialEq)]
 pub struct StudyModeProperties {
     flip_card:  Callback<CardState>,
     review_card: Callback<(CardState, CardDifficulty)>,
     cards: Vec<CardState>,
-}
-
-
-
-#[component]
-fn CardDiv(CardProperties { card }: &CardProperties) -> Html {
-
-    let (title, content) = match card.side() {
-        CardSide::Front => ("Front", card.card().front()),
-        CardSide::Back => ("Back", card.card().back()),
-    };
-
-    html! {
-        <>
-            <h1>{title}</h1>
-            <p>{content}</p>
-        </>
-    }
 }
 
 fn make_prev_card_callback(card_index: UseStateHandle<usize>) -> Callback<yew::MouseEvent> {
@@ -155,9 +132,6 @@ pub enum FlashCardMode {
     Study,
     Manage,
 }
-
-
-
 
 #[component]
 fn Content() -> HtmlResult {
