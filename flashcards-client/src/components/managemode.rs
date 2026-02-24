@@ -30,7 +30,7 @@ pub fn ManageMode(ManageModeProperties { add_card, delete_card, cards }: &Manage
         Callback::from(move |_| {
         })
     };
-    
+
     let card = &cards[*card_index];
     
     Ok(html! {

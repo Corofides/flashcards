@@ -53,12 +53,12 @@ pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyMo
     if card.is_front() {
         return Ok(html! {
             <div>
-                <CardDiv mode={FlashCardMode::Study} card={card.clone()} />
+                <CardDiv flip={flip_card} mode={FlashCardMode::Study} card={card.clone()} />
                 <div class="button-container">
                     <ActionButton enabled={has_previous} aria_label="Previous" onclick={prev_card} icon="\u{2B05}" />
-                    //<button disabled={!has_previous} class="nav-btn" aria-label="Previous" onclick={prev_card}>{ "\u{2B05}" }</button>
-                    <button onclick={flip_card}>{ "Turn Card" }</button>
-                    <button disabled={!has_next} class="nav-btn" aria-label="Next" onclick={next_card}>{ "\u{27A1}" }</button>
+                    //<button onclick={flip_card}>{ "Turn Card" }</button>
+                    <ActionButton enabled={has_next} aria_label="Next" onclick={next_card} icon="\u{27A1}" />
+                    //<button disabled={!has_next} class="nav-btn" aria-label="Next" onclick={next_card}>{ "\u{27A1}" }</button>
                 </div>
             </div>
         })
@@ -66,7 +66,7 @@ pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyMo
 
     Ok(html! {
         <div>
-            <CardDiv mode={FlashCardMode::Study} card={card.clone()} />
+            <CardDiv flip={flip_card} mode={FlashCardMode::Study} card={card.clone()} />
             <button onclick={review_card(CardDifficulty::Easy)}>{ "Easy" }</button>
             <button onclick={review_card(CardDifficulty::Medium)}>{ "Medium" }</button>
             <button onclick={review_card(CardDifficulty::Hard)}>{ "Hard" }</button>

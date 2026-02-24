@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 
 
@@ -38,6 +40,12 @@ body {
 .card-image {
   height: 180px;
   background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-content {
