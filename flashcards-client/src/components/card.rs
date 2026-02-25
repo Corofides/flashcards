@@ -59,13 +59,14 @@ fn render_for_manage(card: &CardState) -> Html {
 
     html! {
         <div class={"card card--manage"} >
-            <h1>{ "Card" }</h1>
-            <div>{ format!("Next Review: {}", card.next_review()) }</div>
-            <div>{ format!("Next Review: {}", review_date) }</div>
-            <div>{ format!("Front of Card: {}", card.front()) }</div>
-            <div>{ format!("Back of Card: {}", card.back()) }</div>
-            <div>{ format!("Ease Factor: {}", card.ease_factor()) }</div>
-            <div>{ format!("{:?}", card) }</div>
+            <div class="card-content">
+                <h2>{ format!("Card: {}", card.id()) }</h2>
+                <div class="description">{ format!("Next Review: {}", card.next_review()) }</div>
+                //<div class="description">{ format!("Next Review: {}", review_date) }</div>
+                <div class="description">{ format!("Front of Card: {}", card.front()) }</div>
+                <div class="description">{ format!("Back of Card: {}", card.back()) }</div>
+                <div class="description">{ format!("Ease Factor: {}", card.ease_factor()) }</div>
+            </div>
         </div>
     }
 }
