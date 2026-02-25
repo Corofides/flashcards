@@ -1,5 +1,6 @@
 use yew::{Properties, HtmlResult, use_state, Callback, component, html};
 use crate::{
+    ActionButton,
     FlashCardMode,
     Callbacks,
     CardDiv, 
@@ -31,15 +32,19 @@ pub fn ManageMode(ManageModeProperties { add_card, delete_card, cards }: &Manage
         })
     };
 
+    let has_previous = *card_index > 0;
+    let has_next = *card_index < cards.len() - 1;
+
     let card = &cards[*card_index];
     
     Ok(html! {
-        <div>
-            <h1>{ "Manage Mode" }</h1>
+        <div class="content">
             <CardDiv mode={FlashCardMode::Manage} card={card.clone()} />
-            <button onclick={next_card}>{ "Next Card" }</button>
-            <button onclick={delete_card}>{ "Delete" }</button>
-            <button onclick={prev_card}>{ "Previous Card" }</button>
+            <div class="button-container">
+                <ActionButton enabled={has_previous} aria_label="Previous" onclick={prev_card} icon="\u{2B05}" />
+                <ActionButton aria_label="Delete" onclick={delete_card} icon="\u{1F5D1}" />
+                <ActionButton enabled={has_next} aria_label="Next" onclick={next_card} icon="\u{27A1}" />
+            </div>
             <h1>{ "Add Card" }</h1>
             <div>
                 <AddNewCardForm on_update={update_card} on_add={add_card} />

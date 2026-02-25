@@ -24,13 +24,6 @@ pub struct Props {
     name: String,
 }
 
-#[derive(Properties, PartialEq)]
-pub struct StudyModeProperties {
-    flip_card:  Callback<CardState>,
-    review_card: Callback<(CardState, CardDifficulty)>,
-    cards: Vec<CardState>,
-}
-
 #[derive(PartialEq)]
 pub enum FlashCardMode {
     Study,
@@ -252,7 +245,7 @@ fn Content() -> HtmlResult {
         return Ok(html! {
             <div class="main main--study">
                 <header>
-                    <ActionButton enabled={true} aria_label="Manage" onclick={change_mode} icon="\u{2699}" />
+                    <ActionButton aria_label="Manage" onclick={change_mode} icon="\u{2699}" />
                 </header>
                 <div class="content">
                     <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
@@ -262,9 +255,9 @@ fn Content() -> HtmlResult {
     }
 
     Ok(html! {
-        <div>
+        <div class="main main--manage">
             <header>
-                <button onclick={change_mode}>{ "Study Mode" }</button>
+                <ActionButton aria_label="Study" onclick={change_mode} icon="\u{1F441}" />
             </header>
             <ManageMode cards={(*cards).clone()} add_card={add_card} delete_card={delete_card} />
         </div>

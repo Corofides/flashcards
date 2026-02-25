@@ -2,6 +2,7 @@ use yew::{Html, component, html, Properties, Callback};
 use flashcards_data::{CardSide, CardState};
 use crate::FlashCardMode;
 use crate::components::actionbutton::ActionButton;
+use chrono::DateTime;
 
 #[derive(Properties, PartialEq)]
 pub struct CardProperties {
@@ -42,11 +43,25 @@ fn render_for_study(card: &CardState, flip: Callback<yew::MouseEvent>) -> Html {
 fn render_for_manage(card: &CardState) -> Html {
 
     let card = card.card();
+    let format = "%Y-%m-%d %H:%M:%S%.9f %Z";
+    //let format = "%Y-%m-%d %H:%M:%S%.9f %Z";
+
+    let dt = DateTime::parse_from_str(card.next_review(), format);
+
+    let review_date = match dt {
+        Ok(dt) => {
+            format!("{}", dt.format("%d-%m %H:%M"))
+        },
+        Err(_err) => {
+            "Unknown".to_string()
+        }
+    };
 
     html! {
         <div class={"card card--manage"} >
             <h1>{ "Card" }</h1>
-            <div>{ format!("Next Review: ") }</div>
+            <div>{ format!("Next Review: {}", card.next_review()) }</div>
+            <div>{ format!("Next Review: {}", review_date) }</div>
             <div>{ format!("Front of Card: {}", card.front()) }</div>
             <div>{ format!("Back of Card: {}", card.back()) }</div>
             <div>{ format!("Ease Factor: {}", card.ease_factor()) }</div>

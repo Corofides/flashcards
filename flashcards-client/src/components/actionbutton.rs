@@ -3,6 +3,7 @@ use yew::{Callback, Properties, component, html, Html};
 
 #[derive(Properties, PartialEq)]
 pub struct ActionButtonProperties {
+    #[prop_or(true)]
     pub enabled: bool,
     pub aria_label: String,
     pub onclick: Callback<yew::MouseEvent>,

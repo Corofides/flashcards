@@ -3,20 +3,26 @@ use yew::{
     HtmlResult,
     use_state,
     component,
+    Properties,
+    Callback,
 };
 use crate::{
     components::actionbutton::ActionButton,
     FlashCardMode,
     Callbacks,
     CardDiv,
-    StudyModeProperties,
 };
 use flashcards_data::{
     CardState,
     CardDifficulty,
 };
 
-
+#[derive(Properties, PartialEq)]
+pub struct StudyModeProperties {
+    pub flip_card:  Callback<CardState>,
+    pub review_card: Callback<(CardState, CardDifficulty)>,
+    pub cards: Vec<CardState>,
+}
 
 #[component]
 pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyModeProperties) -> HtmlResult {
