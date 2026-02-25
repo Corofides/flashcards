@@ -1,3 +1,4 @@
+use yew::prelude::*;
 use yew::{Html, component, html, Properties, Callback};
 use flashcards_data::{CardSide, CardState};
 use crate::FlashCardMode;
@@ -44,7 +45,13 @@ fn render_for_study(card: &CardState, flip: Callback<yew::MouseEvent>) -> Html {
     }
 }
 
-fn render_for_manage(card: &CardState, edit: &bool) -> Html {
+#[derive(Clone, Copy, PartialEq)]
+pub enum ManageMode {
+    View,
+    Edit,
+}
+
+fn render_for_manage(card: &CardState, edit_card: Callback<yew::MouseEvent>, manage_mode: ManageMode) -> Html {
 
     let card = card.card();
     let format = "%Y-%m-%d %H:%M:%S%.9f %Z";
@@ -52,7 +59,13 @@ fn render_for_manage(card: &CardState, edit: &bool) -> Html {
 
     let dt = DateTime::parse_from_str(card.next_review(), format);
 
-    let review_date = match dt {
+    
+    let save_card = {
+        Callback::from(|_| {
+        })
+    };
+
+    let _review_date = match dt {
         Ok(dt) => {
             format!("{}", dt.format("%d-%m %H:%M"))
         },
@@ -61,7 +74,7 @@ fn render_for_manage(card: &CardState, edit: &bool) -> Html {
         }
     };
 
-    if *edit {
+    if manage_mode == ManageMode::Edit {
         return html! {
             <div class={"card card--manage"}>
                 <div class="card-content">
@@ -71,6 +84,9 @@ fn render_for_manage(card: &CardState, edit: &bool) -> Html {
                     <div class="description">{ format!("Front of Card: {}", card.front()) }</div>
                     <div class="description">{ format!("Back of Card: {}", card.back()) }</div>
                     <div class="description">{ format!("Ease Factor: {}", card.ease_factor()) }</div>
+                    <div class={"card-actions"}>
+                        <ActionButton aria_label="Save Card" onclick={save_card} icon={"S"} />
+                    </div>
                 </div>
             </div>
         };
@@ -85,6 +101,9 @@ fn render_for_manage(card: &CardState, edit: &bool) -> Html {
                 <div class="description">{ format!("Front of Card: {}", card.front()) }</div>
                 <div class="description">{ format!("Back of Card: {}", card.back()) }</div>
                 <div class="description">{ format!("Ease Factor: {}", card.ease_factor()) }</div>
+                <div class={"card-actions"}>
+                    <ActionButton aria_label="Edit Card" onclick={edit_card} icon="\u{1F527}" />
+                </div>
             </div>
         </div>
     }
@@ -93,9 +112,20 @@ fn render_for_manage(card: &CardState, edit: &bool) -> Html {
 #[component]
 pub fn CardDiv(CardProperties { mode, card, flip, edit, edit_callback }: &CardProperties) -> Html {
 
+    let manage_mode = use_state(|| ManageMode::View);
+
+    let edit_card = {
+        let manage_mode = manage_mode.clone();
+
+        Callback::from(move |_| {
+            manage_mode.set(ManageMode::Edit);
+        })
+    };
+
+
     match mode {
         FlashCardMode::Manage => {
-            render_for_manage(&card, edit)
+            render_for_manage(&card, edit_card, *manage_mode)
         },
         FlashCardMode::Study => {
             let flip = flip.clone().unwrap();
