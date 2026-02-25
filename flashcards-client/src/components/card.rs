@@ -8,8 +8,12 @@ use chrono::DateTime;
 pub struct CardProperties {
     pub card: CardState,
     pub mode: FlashCardMode,
+    #[prop_or(false)]
+    pub edit: bool,
     #[prop_or(None)]
     pub flip: Option<Callback<yew::MouseEvent>>,
+    #[prop_or(None)]
+    pub edit_callback: Option<Callback<yew::MouseEvent>>,
 }
 
 fn render_for_study(card: &CardState, flip: Callback<yew::MouseEvent>) -> Html {
@@ -40,7 +44,7 @@ fn render_for_study(card: &CardState, flip: Callback<yew::MouseEvent>) -> Html {
     }
 }
 
-fn render_for_manage(card: &CardState) -> Html {
+fn render_for_manage(card: &CardState, edit: &bool) -> Html {
 
     let card = card.card();
     let format = "%Y-%m-%d %H:%M:%S%.9f %Z";
@@ -57,6 +61,21 @@ fn render_for_manage(card: &CardState) -> Html {
         }
     };
 
+    if *edit {
+        return html! {
+            <div class={"card card--manage"}>
+                <div class="card-content">
+                    <h2>{ format!("Card: {}", card.id()) }</h2>
+                    <div class="description">{ format!("Next Review: {}", card.next_review()) }</div>
+                    //<div class="description">{ format!("Next Review: {}", review_date) }</div>
+                    <div class="description">{ format!("Front of Card: {}", card.front()) }</div>
+                    <div class="description">{ format!("Back of Card: {}", card.back()) }</div>
+                    <div class="description">{ format!("Ease Factor: {}", card.ease_factor()) }</div>
+                </div>
+            </div>
+        };
+    }
+
     html! {
         <div class={"card card--manage"} >
             <div class="card-content">
@@ -72,11 +91,11 @@ fn render_for_manage(card: &CardState) -> Html {
 }
 
 #[component]
-pub fn CardDiv(CardProperties { mode, card, flip }: &CardProperties) -> Html {
+pub fn CardDiv(CardProperties { mode, card, flip, edit, edit_callback }: &CardProperties) -> Html {
 
     match mode {
         FlashCardMode::Manage => {
-            render_for_manage(&card)
+            render_for_manage(&card, edit)
         },
         FlashCardMode::Study => {
             let flip = flip.clone().unwrap();
