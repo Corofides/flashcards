@@ -14,6 +14,6 @@ pub fn ActionButton(ActionButtonProperties { enabled, aria_label, onclick, icon 
     let aria_label = aria_label.clone();
 
     html! {
-        <button disabled={!enabled} class="nav-btn" aria-label={aria_label} onclick={onclick}>{ icon }</button>
+        <button disabled={!enabled} class="nav-btn" title={aria_label.clone()} aria-label={aria_label} onclick={onclick}>{ icon }</button>
     }
 }

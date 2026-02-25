@@ -56,9 +56,7 @@ pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyMo
                 <CardDiv flip={flip_card} mode={FlashCardMode::Study} card={card.clone()} />
                 <div class="button-container">
                     <ActionButton enabled={has_previous} aria_label="Previous" onclick={prev_card} icon="\u{2B05}" />
-                    //<button onclick={flip_card}>{ "Turn Card" }</button>
                     <ActionButton enabled={has_next} aria_label="Next" onclick={next_card} icon="\u{27A1}" />
-                    //<button disabled={!has_next} class="nav-btn" aria-label="Next" onclick={next_card}>{ "\u{27A1}" }</button>
                 </div>
             </div>
         })
@@ -67,9 +65,11 @@ pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyMo
     Ok(html! {
         <div>
             <CardDiv flip={flip_card} mode={FlashCardMode::Study} card={card.clone()} />
-            <button onclick={review_card(CardDifficulty::Easy)}>{ "Easy" }</button>
-            <button onclick={review_card(CardDifficulty::Medium)}>{ "Medium" }</button>
-            <button onclick={review_card(CardDifficulty::Hard)}>{ "Hard" }</button>
+            <div class="button-container">
+                <ActionButton enabled={true} aria_label="Easy" onclick={review_card(CardDifficulty::Easy)} icon="\u{2730}" />
+                <ActionButton enabled={true} aria_label="Medium" onclick={review_card(CardDifficulty::Medium)} icon="\u{272E}" />
+                <ActionButton enabled={true} aria_label="Hard" onclick={review_card(CardDifficulty::Hard)} icon="\u{272A}" />
+            </div>
         </div>
     })
     
