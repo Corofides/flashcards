@@ -1,6 +1,7 @@
 use yew::prelude::*;
 use flashcards_data::{ CardDifficulty, ReviewCardPayload, CreateCardPayload, Card, CardState };
 use crate::reducers::flashcards::FlashCardAction;
+use crate::components::actionbutton::ActionButton;
 
 mod card_hooks;
 mod reducers;
@@ -250,15 +251,21 @@ fn Content() -> HtmlResult {
     if *current_mode == FlashCardMode::Study {
         return Ok(html! {
             <div class="main main--study">
-                <button onclick={change_mode}>{ "Manage Mode" }</button>
-                <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
+                <header>
+                    <ActionButton enabled={true} aria_label="Manage" onclick={change_mode} icon="\u{2699}" />
+                </header>
+                <div class="content">
+                    <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
+                </div>
             </div>
         });
     }
 
     Ok(html! {
         <div>
-            <button onclick={change_mode}>{ "Study Mode" }</button>
+            <header>
+                <button onclick={change_mode}>{ "Study Mode" }</button>
+            </header>
             <ManageMode cards={(*cards).clone()} add_card={add_card} delete_card={delete_card} />
         </div>
     })
