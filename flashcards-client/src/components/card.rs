@@ -5,6 +5,8 @@ use crate::FlashCardMode;
 use crate::components::actionbutton::ActionButton;
 use chrono::DateTime;
 
+type MouseCallback = Callback<yew::MouseEvent>;
+
 #[derive(Properties, PartialEq)]
 pub struct CardProperties {
     pub card: CardState,
@@ -51,20 +53,14 @@ pub enum ManageMode {
     Edit,
 }
 
-fn render_for_manage(card: &CardState, edit_card: Callback<yew::MouseEvent>, manage_mode: ManageMode) -> Html {
+fn render_for_manage(card: &CardState, save_card: MouseCallback, edit_card: MouseCallback, manage_mode: ManageMode) -> Html {
 
     let card = card.card();
     let format = "%Y-%m-%d %H:%M:%S%.9f %Z";
     //let format = "%Y-%m-%d %H:%M:%S%.9f %Z";
 
     let dt = DateTime::parse_from_str(card.next_review(), format);
-
     
-    let save_card = {
-        Callback::from(|_| {
-        })
-    };
-
     let _review_date = match dt {
         Ok(dt) => {
             format!("{}", dt.format("%d-%m %H:%M"))
@@ -122,10 +118,18 @@ pub fn CardDiv(CardProperties { mode, card, flip, edit, edit_callback }: &CardPr
         })
     };
 
+    let save_card = {
+        let manage_mode = manage_mode.clone();
+
+        Callback::from(move |_| {
+            manage_mode.set(ManageMode::View);
+        })
+    };
+
 
     match mode {
         FlashCardMode::Manage => {
-            render_for_manage(&card, edit_card, *manage_mode)
+            render_for_manage(&card, save_card, edit_card, *manage_mode)
         },
         FlashCardMode::Study => {
             let flip = flip.clone().unwrap();
