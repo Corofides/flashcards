@@ -126,16 +126,21 @@ fn Content() -> HtmlResult {
     let update_card = {
         let dispatcher = reducer.dispatcher();
         let cards = cards.clone();
-        let card_index = card_index.clone();
+        //let card_index = card_index.clone();
 
         Callback::from(move |card: Card| {
             let dispatcher = dispatcher.clone();
             let cards = cards.clone();
-            let card_index = card_index.clone();
+            //let card_index = card_index.clone();
 
             wasm_bindgen_futures::spawn_local(async move {
 
-                let current_card = cards.get(*card_index).unwrap();
+                let card_index = cards.iter().position(|current_card: &CardState| {
+                    let current_card = current_card.card();
+                    card.id() == current_card.id()
+                }).unwrap();
+
+                let current_card = cards.get(card_index).unwrap();
                 let current_card = current_card.card();
 
                 let card_payload = CreateCardPayload {
@@ -259,7 +264,7 @@ fn Content() -> HtmlResult {
             <header>
                 <ActionButton aria_label="Study" onclick={change_mode} icon="\u{1F441}" />
             </header>
-            <ManageMode cards={(*cards).clone()} add_card={add_card} delete_card={delete_card} />
+            <ManageMode cards={(*cards).clone()} update_card={update_card} add_card={add_card} delete_card={delete_card} />
         </div>
     })
 

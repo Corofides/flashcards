@@ -17,7 +17,7 @@ pub struct CardProperties {
     #[prop_or(None)]
     pub flip: Option<Callback<yew::MouseEvent>>,
     #[prop_or(None)]
-    pub edit_callback: Option<Callback<yew::MouseEvent>>,
+    pub save_callback: Option<Callback<Card>>,
 }
 
 fn render_for_study(card: &CardState, flip: Callback<yew::MouseEvent>) -> Html {
@@ -81,15 +81,11 @@ fn render_for_manage(card: &CardState, card_for_edit: UseStateHandle<Card>, save
 
             let front: String = (*card_for_edit.front()).to_string();
 
-            let mut new_card = Card::new(
+            let new_card = Card::new(
                 *card_for_edit.id(),
                 front,
                 input.value(),
             );
-
-            new_card.set_interval(*card_for_edit.interval());
-            new_card.set_ease_factor(*card_for_edit.ease_factor());
-            new_card.set_next_review(&*card_for_edit.next_review());
 
             card_for_edit.set(new_card);
 
@@ -106,16 +102,11 @@ fn render_for_manage(card: &CardState, card_for_edit: UseStateHandle<Card>, save
 
             let back: String = (*card_for_edit.back()).to_string();
 
-            let mut new_card = Card::new(
+            let new_card = Card::new(
                 *card_for_edit.id(),
                 input.value(),
                 back,
             );
-
-            new_card.set_interval(*card_for_edit.interval());
-            new_card.set_ease_factor(*card_for_edit.ease_factor());
-            new_card.set_next_review(&*card_for_edit.next_review());
-
 
             card_for_edit.set(new_card);
             
@@ -160,7 +151,7 @@ fn render_for_manage(card: &CardState, card_for_edit: UseStateHandle<Card>, save
 }
 
 #[component]
-pub fn CardDiv(CardProperties { mode, card, flip, edit, edit_callback }: &CardProperties) -> Html {
+pub fn CardDiv(CardProperties { mode, card, flip, edit, save_callback }: &CardProperties) -> Html {
 
     let manage_mode = use_state(|| ManageMode::View);
     let card_for_edit = use_state(|| Card::new(0, String::new(), String::new()));
@@ -180,9 +171,21 @@ pub fn CardDiv(CardProperties { mode, card, flip, edit, edit_callback }: &CardPr
     let save_card = {
         let manage_mode = manage_mode.clone();
         let card_for_edit = card_for_edit.clone();
+        let save_callback = save_callback.clone();
 
         Callback::from(move |_| {
+
+            let save_callback = save_callback.clone();
             log::info!("Card: {:?}", card_for_edit);
+            if let Some(save_callback) = save_callback {
+                let card_for_edit = card_for_edit.clone();
+                let card_to_save = Card::new(
+                    *card_for_edit.id(),
+                    card_for_edit.front().to_string(),
+                    card_for_edit.back().to_string(),
+                );
+                save_callback.emit(card_to_save);
+            }
             manage_mode.set(ManageMode::View);
         })
     };
