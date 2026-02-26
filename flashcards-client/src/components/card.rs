@@ -1,9 +1,10 @@
 use yew::prelude::*;
 use yew::{Html, component, html, Properties, Callback};
-use flashcards_data::{CardSide, CardState};
+use flashcards_data::{Card, CardSide, CardState};
 use crate::FlashCardMode;
 use crate::components::actionbutton::ActionButton;
 use chrono::DateTime;
+use web_sys::HtmlInputElement;
 
 type MouseCallback = Callback<yew::MouseEvent>;
 
@@ -53,7 +54,7 @@ pub enum ManageMode {
     Edit,
 }
 
-fn render_for_manage(card: &CardState, save_card: MouseCallback, edit_card: MouseCallback, manage_mode: ManageMode) -> Html {
+fn render_for_manage(card: &CardState, card_for_edit: UseStateHandle<Card>, save_card: MouseCallback, edit_card: MouseCallback, manage_mode: ManageMode) -> Html {
 
     let card = card.card();
     let format = "%Y-%m-%d %H:%M:%S%.9f %Z";
@@ -70,11 +71,64 @@ fn render_for_manage(card: &CardState, save_card: MouseCallback, edit_card: Mous
         }
     };
 
+    let on_back_input = {
+        let card_for_edit = card_for_edit.clone();
+
+        Callback::from(move |e: InputEvent| {
+
+            let input: HtmlInputElement = e.target_unchecked_into();
+            let card_for_edit = card_for_edit.clone();
+
+            let front: String = (*card_for_edit.front()).to_string();
+
+            let mut new_card = Card::new(
+                *card_for_edit.id(),
+                front,
+                input.value(),
+            );
+
+            new_card.set_interval(*card_for_edit.interval());
+            new_card.set_ease_factor(*card_for_edit.ease_factor());
+            new_card.set_next_review(&*card_for_edit.next_review());
+
+            card_for_edit.set(new_card);
+
+        })
+    };
+
+    let on_front_input = {
+        let card_for_edit = card_for_edit.clone();
+
+        Callback::from(move |e: InputEvent| {
+
+            let input: HtmlInputElement = e.target_unchecked_into();
+            let card_for_edit = card_for_edit.clone();
+
+            let back: String = (*card_for_edit.back()).to_string();
+
+            let mut new_card = Card::new(
+                *card_for_edit.id(),
+                input.value(),
+                back,
+            );
+
+            new_card.set_interval(*card_for_edit.interval());
+            new_card.set_ease_factor(*card_for_edit.ease_factor());
+            new_card.set_next_review(&*card_for_edit.next_review());
+
+
+            card_for_edit.set(new_card);
+            
+        })
+    };
+
     if manage_mode == ManageMode::Edit {
         return html! {
             <div class={"card card--manage"}>
                 <div class="card-content">
                     <h2>{ format!("Card: {}", card.id()) }</h2>
+                    <input value={card_for_edit.front().to_string()} oninput={on_front_input} type="text" />
+                    <input value={card_for_edit.back().to_string()} oninput={on_back_input} type="text" />
                     <div class="description">{ format!("Next Review: {}", card.next_review()) }</div>
                     //<div class="description">{ format!("Next Review: {}", review_date) }</div>
                     <div class="description">{ format!("Front of Card: {}", card.front()) }</div>
@@ -109,19 +163,26 @@ fn render_for_manage(card: &CardState, save_card: MouseCallback, edit_card: Mous
 pub fn CardDiv(CardProperties { mode, card, flip, edit, edit_callback }: &CardProperties) -> Html {
 
     let manage_mode = use_state(|| ManageMode::View);
+    let card_for_edit = use_state(|| Card::new(0, String::new(), String::new()));
 
     let edit_card = {
         let manage_mode = manage_mode.clone();
+        let card_for_edit = card_for_edit.clone();
+        let card = card.clone();
 
         Callback::from(move |_| {
             manage_mode.set(ManageMode::Edit);
+            let new_card = card.card().clone();
+            card_for_edit.set(new_card);
         })
     };
 
     let save_card = {
         let manage_mode = manage_mode.clone();
+        let card_for_edit = card_for_edit.clone();
 
         Callback::from(move |_| {
+            log::info!("Card: {:?}", card_for_edit);
             manage_mode.set(ManageMode::View);
         })
     };
@@ -129,7 +190,7 @@ pub fn CardDiv(CardProperties { mode, card, flip, edit, edit_callback }: &CardPr
 
     match mode {
         FlashCardMode::Manage => {
-            render_for_manage(&card, save_card, edit_card, *manage_mode)
+            render_for_manage(&card, card_for_edit, save_card, edit_card, *manage_mode)
         },
         FlashCardMode::Study => {
             let flip = flip.clone().unwrap();
