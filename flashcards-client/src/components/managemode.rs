@@ -44,14 +44,12 @@ pub fn ManageMode(ManageModeProperties { add_card, delete_card, update_card, car
         let manage_mode_type = manage_mode_type.clone();
 
         Callback::from(move |_| {
-
             let type_to_set = match *manage_mode_type {
                 ManageModeType::AddCard => ManageModeType::ViewCards,
                 ManageModeType::ViewCards => ManageModeType::AddCard,
             };
 
             manage_mode_type.set(type_to_set);
-            // Do stuff.
         })
     };
 

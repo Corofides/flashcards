@@ -3,6 +3,7 @@ use flashcards_data::{Card};
 use crate::reducers::newcard::NewCardAction;
 use web_sys::HtmlInputElement;
 use crate::card_hooks::{use_new_card};
+use crate::ActionButton;
 
 // Properties Struct.
 //
@@ -73,14 +74,14 @@ pub fn AddNewCardForm(props: &AddCardProps) -> HtmlResult {
         let card = result.clone();
         let dispatcher = dispatcher.clone();
 
-        move |e: SubmitEvent| {
+        Callback::from(move |e: SubmitEvent| {
             let card = (*card).clone();
 
             on_update.emit(card);
             dispatcher.dispatch(NewCardAction::ResetCard);
 
             e.prevent_default();
-        }
+        })
     };
 
     let add_card = {
@@ -89,7 +90,7 @@ pub fn AddNewCardForm(props: &AddCardProps) -> HtmlResult {
         let card = result.clone();
         let dispatcher = dispatcher.clone();
 
-        move |e: SubmitEvent| {
+        Callback::from(move |e: MouseEvent| {
             let card = (*card).clone();
 
             // On add is a callback we have provided to this component.
@@ -102,38 +103,44 @@ pub fn AddNewCardForm(props: &AddCardProps) -> HtmlResult {
             // the default action from occurring otherwise on the form submission
             // the page would reload which we don't want.
             e.prevent_default();
-        }
+        })
     };
 
-    let on_submit = {
+    /* let on_submit = {
 
         let update_card = update_card.clone();
         let add_card = add_card.clone();
 
-        move |e: SubmitEvent| {
+        Callback::from(move |e: SubmitEvent| {
 
             let value = e.submitter(); //.value();
             
             if let Some(value) = value {
                 if let Some(attribute) = value.get_attribute("value") {
                     if attribute == "add_card" {
-                        add_card(e);
+                        add_card.emit(e);
                     } else if attribute == "update_card" {
-                        update_card(e);
+                        update_card.emit(e);
                     }
                 }
             }
 
-        }
+        })
 
-    };
+    };*/
 
     Ok(html! {
-        <form onsubmit={on_submit}>
-            <input value={result.front().to_string()} oninput={on_front_input} type="text" />
-            <input value={result.back().to_string()} oninput={on_back_input} type="text" />
-            <button value="add_card">{"Add Card"}</button>
-            <button value="update_card">{"Update Card"}</button>
-        </form>
+
+        <div class="card card--manage">
+            <div class={"card-content"}>
+                <h2>{ "Add a new card" }</h2>
+                <input value={result.front().to_string()} oninput={on_front_input} type="text" />
+                <input value={result.back().to_string()} oninput={on_back_input} type="text" />
+                <div class={"card-actions"}>
+                    <ActionButton aria_label="Add Card" onclick={add_card} icon="+" />
+                </div>
+                //<button value="update_card">{"Update Card"}</button>
+            </div>
+        </div>
     })
 }
