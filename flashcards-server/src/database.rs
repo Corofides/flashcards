@@ -73,17 +73,14 @@ impl Database {
         task::block_on(async {
             if let Some(pool) = self.pool.clone() {
                 let result = sqlx::query("INSERT INTO flashcards (
-                        id,
                         front_of_card,
                         back_of_card,
                         next_review
                     ) VALUES (
                         ?, 
-                        ?, 
                         ?,
                         ?
                     )")
-                    .bind(card.id())
                     .bind(card.front())
                     .bind(card.back())
                     .bind(card.next_review())
