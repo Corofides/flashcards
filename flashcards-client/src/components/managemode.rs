@@ -30,14 +30,14 @@ pub fn ManageMode(ManageModeProperties { add_card, delete_card, update_card, car
     let cards = cards.clone();
     let manage_mode_type = use_state(|| ManageModeType::ViewCards);
 
-    let next_card = Callbacks::make_next_card_callback(card_index.clone(), cards.len() - 1);
+    let next_card = Callbacks::make_next_card_callback(card_index.clone(), cards.len().saturating_sub(1));
     let prev_card = Callbacks::make_prev_card_callback(card_index.clone());
     let delete_card = Callbacks::delete_card_emit_callback(cards.clone(), delete_card.clone(), card_index.clone());
     //let add_card = Callbacks::make_add_card_emit_callback(add_card.clone());
 
     let update_card = update_card.clone();
     let has_previous = *card_index > 0;
-    let has_next = *card_index < cards.len() - 1;
+    let has_next = *card_index < cards.len().saturating_sub(1);
 
     let switch = {
 
@@ -65,9 +65,8 @@ pub fn ManageMode(ManageModeProperties { add_card, delete_card, update_card, car
 
     
 
-    let card = &cards[*card_index];
     
-    if *manage_mode_type == ManageModeType::AddCard {
+    if cards.len() == 0 || *manage_mode_type == ManageModeType::AddCard {
         return Ok(html! {
             <div class="content">
                 <AddNewCardForm on_update={update_card} on_add={add_card} />
@@ -77,6 +76,9 @@ pub fn ManageMode(ManageModeProperties { add_card, delete_card, update_card, car
             </div>
         });
     }
+
+
+    let card = &cards[*card_index];
 
     Ok(html! {
         <div class="content">

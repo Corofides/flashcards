@@ -22,10 +22,11 @@ pub struct StudyModeProperties {
     pub flip_card:  Callback<CardState>,
     pub review_card: Callback<(CardState, CardDifficulty)>,
     pub cards: Vec<CardState>,
+    pub change_mode: Callback<yew::MouseEvent>,
 }
 
 #[component]
-pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyModeProperties) -> HtmlResult {
+pub fn StudyMode(StudyModeProperties { change_mode, review_card, flip_card, cards }: &StudyModeProperties) -> HtmlResult {
 
     log::info!("Cards: {:?}", cards);
     let card_index = use_state(|| 0);
@@ -42,7 +43,12 @@ pub fn StudyMode(StudyModeProperties { review_card, flip_card, cards }: &StudyMo
 
     if total_cards == 0 {
         return Ok(html! {
-            <div>{ "You have no cards to review at this time." }</div>
+            <div>
+                <div>{ "You have no cards to review at this time.\n Add a card to get started." }</div>
+                <div class="button-container">
+                    <ActionButton aria_label="Manage" onclick={change_mode.clone()} icon="\u{2699}" />
+                </div>
+            </div>
         });
     }
 

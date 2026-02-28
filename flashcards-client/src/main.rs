@@ -236,24 +236,14 @@ fn Content() -> HtmlResult {
 
     };
     
-    if cards.is_empty() {
-        return Ok(html! {
-            <div>
-                <div>
-                    <AddNewCardForm on_update={update_card} on_add={add_card} />
-                </div>
-            </div>
-        });
-    }
-
     if *current_mode == FlashCardMode::Study {
         return Ok(html! {
             <div class="main main--study">
                 <header>
-                    <ActionButton aria_label="Manage" onclick={change_mode} icon="\u{2699}" />
+                    <ActionButton aria_label="Manage" onclick={change_mode.clone()} icon="\u{2699}" />
                 </header>
                 <div class="content">
-                    <StudyMode cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
+                    <StudyMode change_mode={change_mode.clone()} cards={(*cards).clone()} review_card={review_card} flip_card={flip_card} />
                 </div>
             </div>
         });
